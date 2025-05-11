@@ -2,6 +2,7 @@
   "name": "gitworkspace",
   "displayName": "GitWorkspace",
   "description": "Git-based file explorer.",
+  "publisher": "daveWasTaken",
   "version": "1.0.0",
   "license": "SEE LICENSE IN LICENSE.txt",
   "repository": {
