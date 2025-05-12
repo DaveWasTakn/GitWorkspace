@@ -76,7 +76,7 @@
         "gitWorkspace.path_to_git_executable": {
           "type": "string",
           "default": "OPTIONAL: ADD ABSOLUTE PATH TO GIT EXECUTABLE",
-          "description": "OPTIONAL: Path to the git executable that this extension should use. If none is given, it will try to use the one in your PATH, which may (theoretically) be a bit slower.",
+          "description": "OPTIONAL: Path to the git executable that this extension should use. If none is given, it will try to use the one in your PATH.",
           "order": 1
         }
       }

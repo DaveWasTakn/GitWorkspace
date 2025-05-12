@@ -1,9 +1,3 @@
 # Change Log
 
-All notable changes to the "gitWorkspace" extension will be documented in this file.
-
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
-
-## [Unreleased]
-
-- Initial release
+See the release notes on github https://github.com/DaveWasTakn/GitWorkspace/releases
