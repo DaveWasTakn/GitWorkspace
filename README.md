@@ -14,10 +14,14 @@ A convenient file explorer that displays currently changed files and their Git s
 Just add the (absolute) path to one or multiple git repositories in the extensions settings!
 
 ## Support
+If you like this extension you can buy me a coffee :)
+
+Suggestions, feature requests or contributions are welcome on [github](https://github.com/DaveWasTakn/GitWorkspace).
+
 <a href="https://www.buymeacoffee.com/daveWasTakn" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
 ## Repository
 https://github.com/DaveWasTakn/GitWorkspace
 
 ## License
-[MIT](LICENSE.txt)
+This extension is open source project released under the [MIT](LICENSE.txt) license.
