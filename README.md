@@ -13,6 +13,9 @@ A convenient file explorer that displays currently changed files and their Git s
 ## QuickStart
 Just add the (absolute) path to one or multiple git repositories in the extensions settings!
 
+## Support
+<a href="https://www.buymeacoffee.com/daveWasTakn" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 ## Repository
 https://github.com/DaveWasTakn/GitWorkspace
 

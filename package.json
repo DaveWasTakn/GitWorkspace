@@ -9,6 +9,9 @@
     "type": "git",
     "url": "https://github.com/DaveWasTakn/GitWorkspace"
   },
+  "sponsor": {
+    "url": "https://buymeacoffee.com/davewastakn"
+  },
   "engines": {
     "vscode": "^1.77.0"
   },
@@ -59,12 +62,22 @@
       ]
     },
     "configuration": {
-      "title": "gitWorkspace",
+      "title": "GitWorkspace",
       "properties": {
         "gitWorkspace.path_to_repository": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": ["TODO ADD PATH HERE"],
+          "description": "Absolute paths to the desired git repositories.",
+          "order": 0
+        },
+        "gitWorkspace.path_to_git_executable": {
           "type": "string",
-          "default": "TODO ADD PATH(s) HERE",
-          "description": "Path to the desired git repository (or multiple repositories seperated by semicolons)."
+          "default": "OPTIONAL: ADD ABSOLUTE PATH TO GIT EXECUTABLE",
+          "description": "OPTIONAL: Path to the git executable that this extension should use. If none is given, it will try to use the one in your PATH, which may (theoretically) be a bit slower.",
+          "order": 1
         }
       }
     }

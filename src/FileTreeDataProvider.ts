@@ -2,22 +2,30 @@ import * as vscode from 'vscode';
 import {ProviderResult} from 'vscode';
 import * as path from 'path';
 import {promisify} from 'util';
-import {exec} from 'child_process';
+import {execFile} from 'child_process';
 import * as fs from 'fs';
 
-const execAsync = promisify(exec);
+const execAsync = promisify(execFile);
 
-async function execSyscall(getBranchNameCommand: string, cwd: string): Promise<string> {
-    return (await execAsync(getBranchNameCommand, {cwd})).stdout;
+async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
+    return (await execAsync(executable, args, {cwd})).stdout;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private data: Map<string, TreeItem[]> = new Map<string, TreeItem[]>();
+    private gitPath: string = "git";
 
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+
+    constructor() {
+        const configuredPath: string | undefined = vscode.workspace.getConfiguration('gitWorkspace').get<string>('path_to_git_executable');
+        if (configuredPath && configuredPath !== "OPTIONAL: ADD ABSOLUTE PATH TO GIT EXECUTABLE") {
+            this.gitPath = configuredPath;
+        }
+    }
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
@@ -35,24 +43,20 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     async getChildren(element?: TreeItem): Promise<TreeItem[]> {
-        let repo: string | undefined = vscode.workspace.getConfiguration('gitWorkspace').get("path_to_repository");
+        let repositories: string[] | undefined = vscode.workspace.getConfiguration('gitWorkspace').get("path_to_repository");
 
-        if (repo === undefined || repo === "TODO ADD PATH(s) HERE") {
+        if (repositories === undefined || repositories.length <= 0 || repositories[0] === "TODO ADD PATH HERE") {
             vscode.window.showErrorMessage("Specify path to repository in the extension settings!");
             return [];
         }
 
-        repo = path.normalize(repo);
         const treeItems: TreeItem[] = [];
 
         if (!element) {
-            console.log("a");
-            await this.parseRepositories(repo, treeItems);
+            await this.parseRepositories(repositories, treeItems);
         } else if (element.type === ItemType.REPOSITORY) {
-            console.log("b");
             this.resolveRepository(element, treeItems);
         } else if (element.type === ItemType.DIRECTORY) {
-            console.log("c");
             this.resolveDirectory(element, treeItems);
         }
 
@@ -98,49 +102,43 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         }
     }
 
-    private async parseRepositories(repo: string, treeItems: TreeItem[]) {
-        let repositories: string[];
-        if (repo.includes(";")) {
-            repositories = repo.split(";").filter(Boolean).map(x => x.trim());
-        } else {
-            repositories = [repo];
-        }
-
-        for (const x of repositories) {
-            const getBranchNameCommand: string = "git name-rev --name-only HEAD"; // git >= 1.7
+    private async parseRepositories(repositories: string[], treeItems: TreeItem[]) {
+        const getBranchNameCommand: string[] = ["name-rev", "--name-only", "HEAD"]; // git >= 1.7
+        for (let repository of repositories) {
+            repository = path.normalize(repository);
             let branch: string = "";
             try {
-                let result = await execSyscall(getBranchNameCommand, x);
+                let result = await execSyscall(this.gitPath, getBranchNameCommand, repository);
                 branch = result.replace(/[\r\n]/g, "");
             } catch (error) {
                 vscode.window.showErrorMessage(error.message);
                 console.error("exec error: " + error);
             }
-            const r: TreeItem = new TreeItem(path.basename(x) + " - " + branch, x, ItemType.REPOSITORY, x, undefined);
+            const r: TreeItem = new TreeItem(path.basename(repository) + " - " + branch, repository, ItemType.REPOSITORY, repository, undefined);
             r.setIcon("git_repo.png");
             treeItems.push(r);
 
-            this.data.set(x, await this.getData("", x));
+            this.data.set(repository, await this.getData("", repository));
         }
     }
 
     async getData(currentPath: string, repo: string): Promise<TreeItem[]> {
         let results: string[] = [];
-        const command1 = "git status --untracked-files=all --porcelain";
+        const command1 = ["status", "--untracked-files=all", "--porcelain"];
 
-        const masterCandidates = await execSyscall("git branch -l main master --format %(refname:short)", repo);
+        const masterCandidates = await execSyscall(this.gitPath, ["branch", "-l", "main", "master", "--format", "%(refname:short)"], repo);
         const masterName = masterCandidates ? masterCandidates.split("\n").map(s => s.trim()).filter(Boolean)[0] : "main";
-        const command2 = `git diff --name-only --merge-base ${masterName} HEAD`;
+        const command2 = ["diff", "--name-only", "--merge-base", masterName, "HEAD"];
 
         try {
-            results.push(await execSyscall(command1, repo));
+            results.push(await execSyscall(this.gitPath, command1, repo));
         } catch (error) {
             vscode.window.showErrorMessage(error.message);
             console.error("exec error: " + error);
         }
 
         try {
-            let result2 = await execSyscall(command2, repo);
+            let result2 = await execSyscall(this.gitPath, command2, repo);
             if (result2) {
                 result2 = result2.split("\n").filter(Boolean).map(x => "C " + x).join("\n");
             }
