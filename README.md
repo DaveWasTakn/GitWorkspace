@@ -18,7 +18,9 @@ If you like this extension you can buy me a coffee :)
 
 Suggestions, feature requests or contributions are welcome on [github](https://github.com/DaveWasTakn/GitWorkspace).
 
-<a href="https://www.buymeacoffee.com/daveWasTakn" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/daveWasTakn" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60">
+</a>
 
 ## Repository
 https://github.com/DaveWasTakn/GitWorkspace
