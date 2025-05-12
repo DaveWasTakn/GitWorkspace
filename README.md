@@ -16,11 +16,13 @@ Just add the (absolute) path to one or multiple git repositories in the extensio
 ## Support
 If you like this extension you can buy me a coffee :)
 
-Suggestions, feature requests or contributions are welcome on [github](https://github.com/DaveWasTakn/GitWorkspace).
-
 <a href="https://www.buymeacoffee.com/daveWasTakn" target="_blank">
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60">
 </a>
+
+Suggestions, feature requests or contributions are welcome on [github](https://github.com/DaveWasTakn/GitWorkspace).
+
+You can also leave reviews on the [Microsoft Marketplace](https://marketplace.visualstudio.com/items?itemName=daveWasTaken.gitworkspace).
 
 ## Repository
 https://github.com/DaveWasTakn/GitWorkspace
