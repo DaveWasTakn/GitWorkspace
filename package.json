@@ -3,7 +3,7 @@
   "displayName": "GitWorkspace",
   "description": "Git-based file explorer.",
   "publisher": "daveWasTaken",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "license": "SEE LICENSE IN LICENSE.txt",
   "repository": {
     "type": "git",
@@ -70,13 +70,14 @@
             "type": "string"
           },
           "default": ["TODO ADD PATH HERE"],
-          "description": "Absolute paths to the desired git repositories.",
+          "description": "The paths to the desired git repositories.\n\nPlease provide absolute paths using the correct format for your operating system: For Windows paths should start with a drive letter like 'C:' and can use either backslashes ('\\') or forward slashes ('/'). On Unix-like systems (Linux, macOS and WSL), use forward slashes ('/').",
+          "markdownDescription": "**The paths to the desired git repositories.**\n\n_Please provide absolute paths using the correct format for your operating system: For Windows paths should start with a drive letter like `C:` and can use either backslashes (`\\`) or forward slashes (`/`). On Unix-like systems (Linux, macOS and WSL), use forward slashes (`/`)._",
           "order": 0
         },
         "gitWorkspace.path_to_git_executable": {
           "type": "string",
-          "default": "OPTIONAL: ADD ABSOLUTE PATH TO GIT EXECUTABLE",
-          "description": "OPTIONAL: Path to the git executable that this extension should use. If none is given, it will try to use the one in your PATH.",
+          "description": "OPTIONAL: Path to a specific git executable. If none is provided, the extension will try to use the one found in your PATH.\n\nPlease provide absolute paths using the correct format for your operating system: For Windows paths should start with a drive letter like 'C:' and can use either backslashes ('\\') or forward slashes ('/'). On Unix-like systems (Linux, macOS and WSL), use forward slashes ('/').",
+          "markdownDescription": "_OPTIONAL_: **Path to a specific git executable.** If none is provided, the extension will try to use the one found in your PATH.\n\n_Please provide an absolute path using the correct format for your operating system: For Windows paths should start with a drive letter like `C:` and can use either backslashes (`\\`) or forward slashes (`/`). On Unix-like systems (Linux, macOS and WSL), use forward slashes (`/`)._",
           "order": 1
         }
       }

@@ -20,13 +20,6 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
-    constructor() {
-        const configuredPath: string | undefined = vscode.workspace.getConfiguration('gitWorkspace').get<string>('path_to_git_executable');
-        if (configuredPath && configuredPath !== "OPTIONAL: ADD ABSOLUTE PATH TO GIT EXECUTABLE") {
-            this.gitPath = configuredPath;
-        }
-    }
-
     refresh(): void {
         this._onDidChangeTreeData.fire();
     }
@@ -43,16 +36,19 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
     async getChildren(element?: TreeItem): Promise<TreeItem[]> {
-        let repositories: string[] | undefined = vscode.workspace.getConfiguration('gitWorkspace').get("path_to_repository");
-
-        if (repositories === undefined || repositories.length <= 0 || repositories[0] === "TODO ADD PATH HERE") {
-            vscode.window.showErrorMessage("Specify path to repository in the extension settings!");
-            return [];
-        }
-
         const treeItems: TreeItem[] = [];
 
         if (!element) {
+            let repositories: string[] | undefined = vscode.workspace.getConfiguration('gitWorkspace').get("path_to_repository");
+
+            if (repositories === undefined || repositories.length <= 0 || repositories[0] === "TODO ADD PATH HERE") {
+                vscode.window.showErrorMessage("Specify path to repository in the extension settings!");
+                return [];
+            }
+
+            const configuredPath: string | undefined = vscode.workspace.getConfiguration('gitWorkspace').get<string>('path_to_git_executable');
+            this.gitPath = configuredPath?.trim() || "git";
+
             await this.parseRepositories(repositories, treeItems);
         } else if (element.type === ItemType.REPOSITORY) {
             this.resolveRepository(element, treeItems);
@@ -104,15 +100,19 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private async parseRepositories(repositories: string[], treeItems: TreeItem[]) {
         const getBranchNameCommand: string[] = ["name-rev", "--name-only", "HEAD"]; // git >= 1.7
-        for (let repository of repositories) {
-            repository = path.normalize(repository);
+        for (const repository of repositories) {
             let branch: string = "";
             try {
                 let result = await execSyscall(this.gitPath, getBranchNameCommand, repository);
                 branch = result.replace(/[\r\n]/g, "");
             } catch (error) {
-                vscode.window.showErrorMessage(error.message);
-                console.error("exec error: " + error);
+                if (!fs.existsSync(repository)) {
+                    vscode.window.showErrorMessage(`The repository ${repository} does not exist! It will be ignored.\n\nAlso check if your path is in the correct style: backslashes (\\) for Windows, and forward slashes (/) for Unix-based systems (including macOS and WSL)`);
+                } else {
+                    vscode.window.showErrorMessage("Error executing the following command: '" + this.gitPath + " " + getBranchNameCommand.join(" ") + "' in directory: " + repository);
+                    console.error("exec error: " + error);
+                }
+                continue;
             }
             const r: TreeItem = new TreeItem(path.basename(repository) + " - " + branch, repository, ItemType.REPOSITORY, repository, undefined);
             r.setIcon("git_repo.png");
