@@ -4,12 +4,23 @@ A convenient file explorer that displays currently changed files and their Git s
 
 ## Features
 
-- **_File Explorer Panel_**: Displays changed (tracked and untracked) files from the specified Git repository.
-- **_Branch Diff View_**: Also shows files changed compared to the `master` branch.
-- **_Git Status Indicators_**: Displays file status through icons next to the files.
-- **_Multi-Repository Support_**: Can be used with multiple Git repositories.
-- **_Live Updates_**: Automatically refreshes whenever the vscode window gains focus; also offers a manual refresh
-  button.
+- **File Explorer Panel**
+  Displays all changed files (both tracked and untracked) from the specified Git repositories.
+
+- **Branch Diff View**  
+  Additionally, shows ALL changes of the current branch compared to its origin (the fork-off point from the `master` or
+  `main` branch)!
+  This provides a clear view of every file the branch has ever changed, **ignoring intermediate merges**!
+  Ideal for visualizing the full impact of a feature/topic branch.
+
+- **Git Status Indicators**  
+  Icons next to each file indicate its current Git status (e.g., modified, added, deleted).
+
+- **Multi-Repository Support**  
+  Works seamlessly with multiple Git repositories within the same workspace.
+
+- **Live Updates**  
+  Automatically refreshes when the VS Code window gains focus. A manual refresh button is also available.
 
 ## QuickStart
 
