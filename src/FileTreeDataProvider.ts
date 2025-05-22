@@ -189,34 +189,24 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         let results: string[] = [];
 
         try {
-            results.push(await execSyscall(this.gitPath, GIT_STATUS_COMMAND, repo)); // git status
+            results.push(...(await execSyscall(this.gitPath, GIT_STATUS_COMMAND, repo)).trim().split(/\r?\n/).filter(Boolean));
         } catch (error) {
             vscode.window.showErrorMessage(error.message);
             console.error("exec error: " + error);
         }
 
         if (branch !== this.repositoryInfos[repo].defaultBranch) {
-            console.log(repo + branch);
             try {
-                let diffToBranchOrigin = await execSyscall(this.gitPath, ["diff", "--name-only", this.repositoryInfos[repo].branches[branch]], repo); // diff to the origin of this branch
-                if (diffToBranchOrigin) {
-                    diffToBranchOrigin = diffToBranchOrigin.split("\n").filter(Boolean).map(x => "C " + x).join("\n");
-                }
-                results.push(diffToBranchOrigin);
+                const diffToBranchOrigin = await execSyscall(this.gitPath, ["diff", "--name-only", this.repositoryInfos[repo].branches[branch]], repo); // diff to the origin of this branch
+                results.push(...diffToBranchOrigin.trim().split(/\r?\n/).filter(Boolean).map(x => "C " + x));
             } catch (error) {
                 vscode.window.showErrorMessage(error.message);
                 console.error("exec error: " + error);
             }
         }
 
-        let result = results.join("\n").replace(/\r/g, "");
-        let pathStrings: string[] = result
-            .split("\n")
-            .filter((x, i, a) => a.indexOf(x) === i)
-            .filter(Boolean);
-
         let treeItemMap: Map<string, TreeItem> = new Map<string, TreeItem>();
-        pathStrings.forEach(x => {
+        new Set(results).forEach(x => {
             createItem(currentPath, repo, x, treeItemMap);
         });
 
