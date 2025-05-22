@@ -3,7 +3,7 @@ import {FileTreeDataProvider, TreeItem} from './FileTreeDataProvider';
 
 
 export function activate(context: vscode.ExtensionContext) {
-    const fileTreeDataProvider = new FileTreeDataProvider();
+    const fileTreeDataProvider = new FileTreeDataProvider(context);
 
     const treeView = vscode.window.createTreeView('gitWorkspace_container_files', {
         treeDataProvider: fileTreeDataProvider

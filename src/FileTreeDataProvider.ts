@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import {ProviderResult} from 'vscode';
+import {ExtensionContext, ProviderResult} from 'vscode';
 import * as path from 'path';
 import {promisify} from 'util';
 import {execFile} from 'child_process';
@@ -11,14 +11,31 @@ async function execSyscall(executable: string, args: string[], cwd: string): Pro
     return (await execAsync(executable, args, {cwd})).stdout;
 }
 
+type RepositoryInfo = {
+    defaultBranch: string; branches: Record<string, string>;
+};
+type RepositoryInfos = Record<string, RepositoryInfo>;
+
+const BRANCH_NAME_COMMAND: string[] = ["name-rev", "--name-only", "HEAD"]; // git >= 1.7
+const DEFAULT_BRANCH_NAME_COMMAND: string[] = ["branch", "-l", "main", "master", "--format", "%(refname:short)"];
+const GIT_STATUS_COMMAND: string[] = ["status", "--untracked-files=all", "--porcelain"];
+
+// TODO add an option for the user to reset/delete global Memento storage !!!
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private data: Map<string, TreeItem[]> = new Map<string, TreeItem[]>();
     private gitPath: string = "git";
+    private repositoryInfos: RepositoryInfos = {};
 
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
+    private readonly context: ExtensionContext;
+
+    constructor(context: vscode.ExtensionContext) {
+        this.context = context;
+    }
 
     refresh(): void {
         this._onDidChangeTreeData.fire();
@@ -41,13 +58,15 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         if (!element) {
             let repositories: string[] | undefined = vscode.workspace.getConfiguration('gitWorkspace').get("path_to_repository");
 
-            if (repositories === undefined || repositories.length <= 0 || repositories[0] === "TODO ADD PATH HERE") {
+            if (!repositories || repositories.length === 0) {
                 vscode.window.showErrorMessage("Specify path to repository in the extension settings!");
                 return [];
             }
 
             const configuredPath: string | undefined = vscode.workspace.getConfiguration('gitWorkspace').get<string>('path_to_git_executable');
             this.gitPath = configuredPath?.trim() || "git";
+
+            this.repositoryInfos = this.loadFromGlobalMemento("repositoryInfos", {});
 
             await this.parseRepositories(repositories, treeItems);
         } else if (element.type === ItemType.REPOSITORY) {
@@ -59,7 +78,15 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         return treeItems;
     }
 
-    private resolveDirectory(element: TreeItem, treeItems: TreeItem[]) {
+    private saveToGlobalMemento(key: string, value: any): void {
+        this.context.globalState.update(key, value);
+    }
+
+    private loadFromGlobalMemento<T>(key: string, defaultVal: T): T {
+        return this.context.globalState.get<T>(key, defaultVal);
+    }
+
+    private resolveDirectory(element: TreeItem, treeItems: TreeItem[]): void {
         const prevDirs = path.join(...element.prevDirs) + path.sep;
 
         for (const item of this.data.get(element.repo) ?? []) {
@@ -82,7 +109,7 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         }
     }
 
-    private resolveRepository(element: TreeItem, treeItems: TreeItem[]) {
+    private resolveRepository(element: TreeItem, treeItems: TreeItem[]): void {
         for (const item of this.data.get(element.repo) ?? []) {
             if (item.filePath.includes(path.sep)) {
                 const topDir = item.filePath.split(path.sep)[0];
@@ -98,54 +125,88 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         }
     }
 
-    private async parseRepositories(repositories: string[], treeItems: TreeItem[]) {
-        const getBranchNameCommand: string[] = ["name-rev", "--name-only", "HEAD"]; // git >= 1.7
+    private async parseRepositories(repositories: string[], treeItems: TreeItem[]): Promise<void> {
         for (const repository of repositories) {
-            let branch: string = "";
-            try {
-                let result = await execSyscall(this.gitPath, getBranchNameCommand, repository);
-                branch = result.replace(/[\r\n]/g, "");
-            } catch (error) {
-                if (!fs.existsSync(repository)) {
-                    vscode.window.showErrorMessage(`The repository ${repository} does not exist! It will be ignored.\n\nAlso check if your path is in the correct style: backslashes (\\) for Windows, and forward slashes (/) for Unix-based systems (including macOS and WSL)`);
-                } else {
-                    vscode.window.showErrorMessage("Error executing the following command: '" + this.gitPath + " " + getBranchNameCommand.join(" ") + "' in directory: " + repository);
-                    console.error("exec error: " + error);
-                }
-                continue;
+            if (!this.repositoryInfos[repository]) {
+                this.repositoryInfos[repository] = {
+                    branches: {}, defaultBranch: await this.getDefaultBranchName(repository)
+                };
+                this.saveToGlobalMemento("repositoryInfos", this.repositoryInfos);
             }
-            const r: TreeItem = new TreeItem(path.basename(repository) + " - " + branch, repository, ItemType.REPOSITORY, repository, undefined);
-            r.setIcon("git_repo.png");
-            treeItems.push(r);
+            const branch: string | undefined = await this.getBranchName(repository);
+            if (branch) {
+                const r: TreeItem = new TreeItem(path.basename(repository) + " - " + branch, repository, ItemType.REPOSITORY, repository, undefined);
+                r.setIcon("git_repo.png");
+                treeItems.push(r);
 
-            this.data.set(repository, await this.getData("", repository));
+                if (!this.repositoryInfos[repository].branches[branch]) {
+                    this.repositoryInfos[repository].branches[branch] = await this.getBranchOrigin(repository, branch);
+                    this.saveToGlobalMemento("repositoryInfos", this.repositoryInfos);
+                }
+
+                this.data.set(repository, await this.getData("", repository, branch));
+            }
         }
     }
 
-    async getData(currentPath: string, repo: string): Promise<TreeItem[]> {
-        let results: string[] = [];
-        const command1 = ["status", "--untracked-files=all", "--porcelain"];
+    private async getBranchOrigin(repository: string, branch: string): Promise<string> {
+        // find the commit on the master branch immediately before this branch was created
+        const revlist_branch: string[] = (await execSyscall(this.gitPath, ["rev-list", "--first-parent", branch], repository)).trim().split('\n');
+        const revlist_master: string[] = (await execSyscall(this.gitPath, ["rev-list", "--first-parent", this.repositoryInfos[repository].defaultBranch], repository)).trim().split('\n');
+        const masterSet = new Set(revlist_master);
 
-        const masterCandidates = await execSyscall(this.gitPath, ["branch", "-l", "main", "master", "--format", "%(refname:short)"], repo);
-        const masterName = masterCandidates ? masterCandidates.split("\n").map(s => s.trim()).filter(Boolean)[0] : "main";
-        const command2 = ["diff", "--name-only", "--merge-base", masterName, "HEAD"];
+        const branchOrigin: string | undefined = revlist_branch.find(commit => masterSet.has(commit));
+        if (branchOrigin) {
+            return branchOrigin;
+        }
+
+        // else just return the merge-base "git merge-base HEAD master"
+        return await execSyscall(this.gitPath, ["merge-base", "HEAD", this.repositoryInfos[repository].defaultBranch], repository);
+    }
+
+
+    private async getBranchName(repository: string): Promise<string | undefined> {
+        try {
+            let result = await execSyscall(this.gitPath, BRANCH_NAME_COMMAND, repository);
+            return result.replace(/[\r\n]/g, "");
+        } catch (error) {
+            if (!fs.existsSync(repository)) {
+                vscode.window.showErrorMessage(`The repository ${repository} does not exist! It will be ignored.\n\nAlso check if your path is in the correct style: backslashes (\\) for Windows, and forward slashes (/) for Unix-based systems (including macOS and WSL)`);
+            } else {
+                vscode.window.showErrorMessage("Error executing the following command: '" + this.gitPath + " " + BRANCH_NAME_COMMAND.join(" ") + "' in directory: " + repository);
+                console.error("exec error: " + error);
+            }
+            return undefined;
+        }
+    }
+
+    private async getDefaultBranchName(repository: string): Promise<string> {
+        const possibleNames = await execSyscall(this.gitPath, DEFAULT_BRANCH_NAME_COMMAND, repository);
+        return possibleNames ? possibleNames.split("\n").map(s => s.trim()).filter(Boolean)[0] : "main";
+    }
+
+    async getData(currentPath: string, repo: string, branch: string): Promise<TreeItem[]> {
+        let results: string[] = [];
 
         try {
-            results.push(await execSyscall(this.gitPath, command1, repo));
+            results.push(await execSyscall(this.gitPath, GIT_STATUS_COMMAND, repo)); // git status
         } catch (error) {
             vscode.window.showErrorMessage(error.message);
             console.error("exec error: " + error);
         }
 
-        try {
-            let result2 = await execSyscall(this.gitPath, command2, repo);
-            if (result2) {
-                result2 = result2.split("\n").filter(Boolean).map(x => "C " + x).join("\n");
+        if (branch !== this.repositoryInfos[repo].defaultBranch) {
+            console.log(repo + branch);
+            try {
+                let diffToBranchOrigin = await execSyscall(this.gitPath, ["diff", "--name-only", this.repositoryInfos[repo].branches[branch]], repo); // diff to the origin of this branch
+                if (diffToBranchOrigin) {
+                    diffToBranchOrigin = diffToBranchOrigin.split("\n").filter(Boolean).map(x => "C " + x).join("\n");
+                }
+                results.push(diffToBranchOrigin);
+            } catch (error) {
+                vscode.window.showErrorMessage(error.message);
+                console.error("exec error: " + error);
             }
-            results.push(result2);
-        } catch (error) {
-            vscode.window.showErrorMessage(error.message);
-            console.error("exec error: " + error);
         }
 
         let result = results.join("\n").replace(/\r/g, "");
