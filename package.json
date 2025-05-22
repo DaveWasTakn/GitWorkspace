@@ -3,9 +3,11 @@
   "displayName": "Git Workspace",
   "description": "Git-based file explorer showing the current status and ALL files changed by a branch since its creation!",
   "publisher": "daveWasTaken",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "keywords": ["git", "workspace", "branch", "file", "explorer"],
   "license": "SEE LICENSE IN LICENSE.txt",
+  "icon": "resources/folder-git.png",
+  "homepage": "https://github.com/DaveWasTakn/GitWorkspace",
   "repository": {
     "type": "git",
     "url": "https://github.com/DaveWasTakn/GitWorkspace"
