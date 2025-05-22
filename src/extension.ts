@@ -10,11 +10,14 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     vscode.commands.registerCommand('gitWorkspace_container_files.refreshEntry', () => fileTreeDataProvider.refresh());
+    vscode.commands.registerCommand('gitWorkspace_container_files.reset', () => {
+        fileTreeDataProvider.reset();
+        fileTreeDataProvider.refresh();
+    });
 
     vscode.window.onDidChangeWindowState((state) => {
         if (state.focused) {
             fileTreeDataProvider.refresh();
-            // console.log('Window gained focus');
         }
     });
 

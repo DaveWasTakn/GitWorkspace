@@ -23,6 +23,10 @@
   "contributes": {
     "commands": [
       {
+        "command": "gitWorkspace_container_files.reset",
+        "title": "Reset Cached Repository Information"
+      },
+      {
         "command": "gitWorkspace_container_files.refreshEntry",
         "title": "Refresh",
         "icon": {
@@ -58,6 +62,10 @@
           "command": "gitWorkspace_container_files.refreshEntry",
           "when": "view == gitWorkspace_container_files",
           "group": "navigation"
+        },
+        {
+          "command": "gitWorkspace_container_files.reset",
+          "when": "view == gitWorkspace_container_files"
         }
       ]
     },
