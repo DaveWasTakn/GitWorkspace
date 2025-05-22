@@ -1,7 +1,7 @@
 {
   "name": "gitworkspace",
   "displayName": "Git Workspace",
-  "description": "Git-based file explorer showing the current status and ALL files changed by a branch since its creation!",
+  "description": "A convenient Git-based file explorer that displays (1) currently changed files, and (2) ALL files ever modified by the current branch (since its creation!) for one or more Git repositories.",
   "publisher": "daveWasTaken",
   "version": "1.1.1",
   "keywords": ["git", "workspace", "branch", "file", "explorer"],

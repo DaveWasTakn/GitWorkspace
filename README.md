@@ -1,6 +1,7 @@
-# _GitWorkspace_
+# Git Workspace
 
-A convenient file explorer that displays currently changed files and their Git status for one or more Git repositories.
+A convenient Git-based file explorer that displays (1) currently changed files, and (2) ALL files ever modified by
+the current branch (since its creation!) for one or more Git repositories.
 
 ## Features
 
