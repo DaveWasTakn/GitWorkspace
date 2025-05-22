@@ -20,7 +20,6 @@ const BRANCH_NAME_COMMAND: string[] = ["name-rev", "--name-only", "HEAD"]; // gi
 const DEFAULT_BRANCH_NAME_COMMAND: string[] = ["branch", "-l", "main", "master", "--format", "%(refname:short)"];
 const GIT_STATUS_COMMAND: string[] = ["status", "--untracked-files=all", "--porcelain"];
 
-// TODO add an option for the user to reset/delete global Memento storage !!!
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
@@ -155,8 +154,8 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private async getBranchOrigin(repository: string, branch: string): Promise<string> {
         // find the commit on the master branch immediately before this branch was created
-        const revlist_branch: string[] = (await execSyscall(this.gitPath, ["rev-list", "--first-parent", branch], repository)).trim().split('\n');
-        const revlist_master: string[] = (await execSyscall(this.gitPath, ["rev-list", "--first-parent", this.repositoryInfos[repository].defaultBranch], repository)).trim().split('\n');
+        const revlist_branch: string[] = (await execSyscall(this.gitPath, ["rev-list", "--first-parent", branch, "--"], repository)).trim().split('\n');
+        const revlist_master: string[] = (await execSyscall(this.gitPath, ["rev-list", "--first-parent", this.repositoryInfos[repository].defaultBranch, "--"], repository)).trim().split('\n');
         const masterSet = new Set(revlist_master);
 
         const branchOrigin: string | undefined = revlist_branch.find(commit => masterSet.has(commit));
@@ -201,8 +200,8 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
         if (branch !== this.repositoryInfos[repo].defaultBranch) {
             try {
-                const diffToBranchOrigin = await execSyscall(this.gitPath, ["diff", "--name-only", this.repositoryInfos[repo].branches[branch]], repo); // diff to the origin of this branch
-                results.push(...diffToBranchOrigin.trim().split(/\r?\n/).filter(Boolean).map(x => "C " + x));
+                const diffToBranchOrigin = await execSyscall(this.gitPath, ["diff", "--name-status", this.repositoryInfos[repo].branches[branch]], repo); // diff to the origin of this branch
+                results.push(...diffToBranchOrigin.trim().split(/\r?\n/).filter(Boolean).map(x => "C" + x));
             } catch (error) {
                 vscode.window.showErrorMessage(error.message);
                 console.error("exec error: " + error);
@@ -228,7 +227,7 @@ function createItem(currentPath: string, repo: string, gitRet: string, treeItemM
     let prefix: string;
     let remaining: string;
     try {
-        const split: string[] = gitRet.trimStart().split(/(?<=^\S+?)\s+/g);
+        const split: string[] = gitRet.trimStart().split(/(?<=^\S+?)[\s\t]+?/g);
         prefix = split[0];
         remaining = split[1];
         if ((remaining.startsWith('"') && remaining.endsWith('"')) || (remaining.startsWith("'") && remaining.endsWith("'"))) {
@@ -280,18 +279,27 @@ export class TreeItem extends vscode.TreeItem {
             case (GitType.ADDED):
                 icon = "icon-status-added.png";
                 break;
+            case (GitType.COMMITTED_ADDED):
+                icon = "icon-status-added-committed.png";
+                break;
             case (GitType.DELETED):
                 icon = "icon-status-deleted.png";
                 break;
+            case (GitType.COMMITTED_DELETED):
+                icon = "icon-status-deleted-committed.png";
+                break;
             case (GitType.MODIFIED):
                 icon = "icon-status-modified.png";
+                break;
+            case (GitType.COMMITTED_MODIFIED):
+                icon = "icon-status-modified-committed.png";
                 break;
             case (GitType.UNTRACKED):
                 icon = "icon-status-untracked.png";
                 break;
             default:
-                icon = "icon-status-untracked.png";
-                break;
+                this.iconPath = new vscode.ThemeIcon("question");
+                return;
         }
         this.iconPath = vscode.Uri.file(path.join(this.resourcesPath, icon));
     }
@@ -350,14 +358,25 @@ export enum ItemType {
 }
 
 export enum GitType {
-    UNTRACKED = "??", MODIFIED = "M", COMMITTED = "C", ADDED = "A", DELETED = "D", UNKNOWN = "LMAO"
+    UNTRACKED = "??",
+    MODIFIED = "M",
+    COMMITTED_MODIFIED = "CM",
+    COMMITTED = "C",
+    ADDED = "A",
+    COMMITTED_ADDED = "CA",
+    DELETED = "D",
+    COMMITTED_DELETED = "CD",
+    UNKNOWN = "LMAO"
 }
 
 const gitTypePriority = {
-    [GitType.UNKNOWN]: 1,
-    [GitType.COMMITTED]: 2,
-    [GitType.MODIFIED]: 3,
-    [GitType.UNTRACKED]: 4,
-    [GitType.ADDED]: 5,
-    [GitType.DELETED]: 6,
+    [GitType.UNKNOWN]: 0,
+    [GitType.COMMITTED_MODIFIED]: 1,
+    [GitType.COMMITTED_ADDED]: 2,
+    [GitType.COMMITTED_DELETED]: 3,
+    [GitType.COMMITTED]: 4,
+    [GitType.MODIFIED]: 5,
+    [GitType.UNTRACKED]: 6,
+    [GitType.ADDED]: 7,
+    [GitType.DELETED]: 8,
 };
