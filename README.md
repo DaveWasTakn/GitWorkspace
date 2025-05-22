@@ -4,7 +4,7 @@ A convenient file explorer that displays currently changed files and their Git s
 
 ## Features
 
-- **File Explorer Panel**
+- **File Explorer Panel**  
   Displays all changed files (both tracked and untracked) from the specified Git repositories.
 
 - **Branch Diff View**  
@@ -24,23 +24,23 @@ A convenient file explorer that displays currently changed files and their Git s
 
 ## QuickStart
 
-Just add the (absolute) path to one or multiple git repositories in the extensions settings!
+Just add the (absolute) path to one or multiple Git repositories in the extensions settings!
 
 ## Icons-Legend
 
-| Icon                                              | Meaning              |
-|---------------------------------------------------|----------------------|
-| ![](resources/icon-status-added.png)              | Added                |
-| ![](resources/icon-status-deleted.png)            | Deleted              |
-| ![](resources/icon-status-modified.png)           | Modified             |
-| ![](resources/icon-status-untracked.png)          | Untracked            |
-| ![](resources/icon-status-committed.png)          | Committed            |
-| ------                                            | -------------------- |
-| ![](resources/icon-status-added-committed.png)    | Merged + Added       |
-| ![](resources/icon-status-modified-committed.png) | Merged + Modified    |
-| ![](resources/icon-status-deleted-committed.png)  | Merged + Deleted     |
+| Icon                                              | Meaning           |
+|---------------------------------------------------|-------------------|
+| ![](resources/icon-status-added.png)              | Added             |
+| ![](resources/icon-status-deleted.png)            | Deleted           |
+| ![](resources/icon-status-modified.png)           | Modified          |
+| ![](resources/icon-status-untracked.png)          | Untracked         |
+| ![](resources/icon-status-committed.png)          | Committed         |
+|                                                   |                   |
+| ![](resources/icon-status-added-committed.png)    | Merged + Added    |
+| ![](resources/icon-status-modified-committed.png) | Merged + Modified |
+| ![](resources/icon-status-deleted-committed.png)  | Merged + Deleted  |
 
-The three icons on the bottom (Committed + XXXXX) represent files changed by the current branch that have already been
+The three icons on the bottom (Merged + XXXXX) represent files changed by the current branch that have already been
 merged into the default branch (master/main).
 
 ## Support
@@ -51,10 +51,10 @@ merged into the default branch (master/main).
   <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60">
 </a>
 
-**Suggestions, feature requests or contributions are welcome on [github](https://github.com/DaveWasTakn/GitWorkspace).**
+**Suggestions, feature requests or contributions are welcome on [Github](https://github.com/DaveWasTakn/GitWorkspace).**
 
 **You can also leave reviews on
-the [Microsoft Marketplace](https://marketplace.visualstudio.com/items?itemName=daveWasTaken.gitworkspace).**
+the [Microsoft Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=daveWasTaken.gitworkspace).**
 
 ## Repository
 
@@ -62,4 +62,4 @@ https://github.com/DaveWasTakn/GitWorkspace
 
 ## License
 
-This extension is open source project released under the [MIT](LICENSE.txt) license.
+This extension is an open source project released under the [MIT](LICENSE.txt) license.
