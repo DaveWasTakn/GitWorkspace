@@ -36,9 +36,9 @@ Just add the (absolute) path to one or multiple git repositories in the extensio
 | ![](resources/icon-status-untracked.png)          | Untracked            |
 | ![](resources/icon-status-committed.png)          | Committed            |
 | ------                                            | -------------------- |
-| ![](resources/icon-status-added-committed.png)    | Committed + Added    |
-| ![](resources/icon-status-modified-committed.png) | Committed + Modified |
-| ![](resources/icon-status-deleted-committed.png)  | Committed + Deleted  |
+| ![](resources/icon-status-added-committed.png)    | Merged + Added       |
+| ![](resources/icon-status-modified-committed.png) | Merged + Modified    |
+| ![](resources/icon-status-deleted-committed.png)  | Merged + Deleted     |
 
 The three icons on the bottom (Committed + XXXXX) represent files changed by the current branch that have already been
 merged into the default branch (master/main).
