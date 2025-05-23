@@ -234,8 +234,11 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
         if (branch !== this.repositoryInfos[repo].defaultBranch) {
             try {
-                const diffToBranchOrigin = await execSyscall(this.gitPath, ["diff", "--name-status", this.repositoryInfos[repo].branches[branch]], repo); // diff to the origin of this branch
-                results.push(...diffToBranchOrigin.trim().split(/\r?\n/).filter(Boolean).map(x => "C" + x));
+                let diffToBranchOrigin = await execSyscall(this.gitPath, ["diff", "--name-status", "--no-renames", "-z", this.repositoryInfos[repo].branches[branch]], repo); // diff to the origin of this branch
+                const entries = diffToBranchOrigin.split('\0').filter(Boolean);
+                for (let i = 0; i < entries.length; i += 2) {
+                    results.push("C" + entries[i] + " " + entries[i + 1]);
+                }
             } catch (error) {
                 vscode.window.showErrorMessage(error.message);
                 console.error("exec error: " + error);
@@ -261,7 +264,7 @@ function createItem(currentPath: string, repo: string, gitRet: string, treeItemM
     let prefix: string;
     let remaining: string;
     try {
-        const split: string[] = gitRet.trimStart().split(/(?<=^\S+?)[\s\t]+?/g);
+        const split: string[] = gitRet.trimStart().split(/(?<=^\S+?)\s+?/g);
         prefix = split[0];
         remaining = split[1];
         if ((remaining.startsWith('"') && remaining.endsWith('"')) || (remaining.startsWith("'") && remaining.endsWith("'"))) {
