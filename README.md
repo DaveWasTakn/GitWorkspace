@@ -30,20 +30,19 @@ Just add the (absolute) path to one or multiple Git repositories in the extensio
 
 ## Icons-Legend
 
-| Icon                                              | Meaning           |
-|---------------------------------------------------|-------------------|
-| ![](resources/icon-status-added.png)              | Added             |
-| ![](resources/icon-status-deleted.png)            | Deleted           |
-| ![](resources/icon-status-modified.png)           | Modified          |
-| ![](resources/icon-status-untracked.png)          | Untracked         |
-| ![](resources/icon-status-committed.png)          | Committed         |
-|                                                   |                   |
-| ![](resources/icon-status-added-committed.png)    | Merged + Added    |
-| ![](resources/icon-status-modified-committed.png) | Merged + Modified |
-| ![](resources/icon-status-deleted-committed.png)  | Merged + Deleted  |
+| Icon                                              | Meaning              |
+|---------------------------------------------------|----------------------|
+| ![](resources/icon-status-added.png)              | Added                |
+| ![](resources/icon-status-deleted.png)            | Deleted              |
+| ![](resources/icon-status-modified.png)           | Modified             |
+| ![](resources/icon-status-untracked.png)          | Untracked            |
+|                                                   |                      |
+| ![](resources/icon-status-added-committed.png)    | Committed + Added    |
+| ![](resources/icon-status-modified-committed.png) | Committed + Modified |
+| ![](resources/icon-status-deleted-committed.png)  | Committed + Deleted  |
 
-The three icons on the bottom (Merged + XXXXX) represent files changed by the current branch that have already been
-merged into the default branch (master/main).
+The three icons on the bottom (Committed + XXXXX) represent files that have been committed to the current branch,
+regardless of whether these changes have already been merged back into the default branch (master/main).
 
 ## Support
 
