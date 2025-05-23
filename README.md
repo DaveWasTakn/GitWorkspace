@@ -21,7 +21,8 @@ the current branch (since its creation!) for one or more Git repositories.
   Works seamlessly with multiple Git repositories within the same workspace.
 
 - **Live Updates**  
-  Automatically refreshes when the VS Code window gains focus. A manual refresh button is also available.
+  Automatically refreshes when files change in one of the repositories, when the VS Code window regains focus,
+  (or via a manual refresh button).
 
 ## QuickStart
 
