@@ -27,6 +27,14 @@ export function activate(context: vscode.ExtensionContext) {
             treeItem.onItemSelection();
         }
     });
+
+    vscode.workspace.onDidChangeConfiguration(event => {
+        if (event.affectsConfiguration('gitWorkspace.useFileWatchers')) {
+            fileTreeDataProvider.disposeFileWatchers();
+            fileTreeDataProvider.readConfig_useFileWatchers();
+            fileTreeDataProvider.refresh();
+        }
+    });
 }
 
 export function deactivate() {

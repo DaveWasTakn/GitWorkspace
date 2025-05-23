@@ -90,6 +90,13 @@
           "description": "OPTIONAL: Path to a specific git executable. If none is provided, the extension will try to use the one found in your PATH.\n\nPlease provide absolute paths using the correct format for your operating system: For Windows paths should start with a drive letter like 'C:' and can use either backslashes ('\\') or forward slashes ('/'). On Unix-like systems (Linux, macOS and WSL), use forward slashes ('/').",
           "markdownDescription": "_OPTIONAL_: **Path to a specific git executable.** If none is provided, the extension will try to use the one found in your PATH.\n\n_Please provide an absolute path using the correct format for your operating system: For Windows paths should start with a drive letter like `C:` and can use either backslashes (`\\`) or forward slashes (`/`). On Unix-like systems (Linux, macOS and WSL), use forward slashes (`/`)._",
           "order": 1
+        },
+        "gitWorkspace.useFileWatchers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic view updates when files in the specified repositories are created, changed, or deleted.",
+          "markdownDescription": "Enable automatic view updates when files in the specified repositories are created, changed, or deleted.",
+          "order": 2
         }
       }
     }

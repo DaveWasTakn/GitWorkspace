@@ -27,6 +27,9 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     private data: Map<string, TreeItem[]> = new Map<string, TreeItem[]>();
     private gitPath: string = "git";
     private repositoryInfos: RepositoryInfos = {};
+    private useFileWatchers: boolean = true;
+    private fileWatchers: Record<string, vscode.FileSystemWatcher> = {};
+    private lastRefreshTime = 0;
 
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
@@ -34,10 +37,21 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
+        this.readConfig_useFileWatchers();
+    }
+
+
+    public readConfig_useFileWatchers(): void {
+        this.useFileWatchers = vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('useFileWatchers') ?? true;
     }
 
     refresh(): void {
-        this._onDidChangeTreeData.fire();
+        const now: number = Date.now();
+        if (now - this.lastRefreshTime > 350) {
+            this.lastRefreshTime = now;
+            this._onDidChangeTreeData.fire();
+            console.log("refresh");
+        }
     }
 
     reset(): void {
@@ -147,8 +161,28 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
                     this.saveToGlobalMemento("repositoryInfos", this.repositoryInfos);
                 }
 
+                if (this.useFileWatchers && !this.fileWatchers[repository]) {
+                    this.createFileWatcher(repository);
+                }
+
                 this.data.set(repository, await this.getData("", repository, branch));
             }
+        }
+    }
+
+    private createFileWatcher(path: string): void {
+        const fileSystemWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(path), '**/*'));
+        fileSystemWatcher.onDidChange(_ => this.refresh());
+        fileSystemWatcher.onDidCreate(_ => this.refresh());
+        fileSystemWatcher.onDidDelete(_ => this.refresh());
+        this.context.subscriptions.push(fileSystemWatcher);
+        this.fileWatchers[path] = fileSystemWatcher;
+    }
+
+    public disposeFileWatchers(): void {
+        for (const path in this.fileWatchers) {
+            this.fileWatchers[path].dispose();
+            delete this.fileWatchers[path];
         }
     }
 
