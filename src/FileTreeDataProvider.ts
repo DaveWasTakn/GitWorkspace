@@ -264,7 +264,7 @@ function createItem(currentPath: string, repo: string, gitRet: string, treeItemM
     let prefix: string;
     let remaining: string;
     try {
-        const split: string[] = gitRet.trimStart().split(/(?<=^\S+?)\s+?/g);
+        const split: string[] = gitRet.trimStart().split(/(?<=^\S+?)\s+/g);
         prefix = split[0];
         remaining = split[1];
         if ((remaining.startsWith('"') && remaining.endsWith('"')) || (remaining.startsWith("'") && remaining.endsWith("'"))) {
