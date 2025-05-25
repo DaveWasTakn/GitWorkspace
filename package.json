@@ -3,7 +3,7 @@
   "displayName": "Git Workspace",
   "description": "A convenient Git-based file explorer that displays (1) currently changed files, and (2) ALL files ever modified by the current branch (since its creation!) for one or more Git repositories.",
   "publisher": "daveWasTaken",
-  "version": "1.1.4",
+  "version": "1.2.0",
   "keywords": ["git", "workspace", "branch", "file", "explorer"],
   "license": "SEE LICENSE IN LICENSE.txt",
   "icon": "resources/folder-git.png",
