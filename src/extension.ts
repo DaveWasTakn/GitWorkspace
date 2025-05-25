@@ -52,9 +52,15 @@ export function activate(context: vscode.ExtensionContext) {
             let cmd = commands[i];
             const placeholders = cmd.matchAll(/<<<.*?>>>/g);
             for (const [placeholder] of placeholders) {
-                const value = await vscode.window.showInputBox({
-                    title: "Input: " + placeholder.slice(3,-3)
-                });
+                let value;
+                if (placeholder in KNOWN_PLACEHOLDERS) {
+                    value = KNOWN_PLACEHOLDERS[placeholder as keyof typeof KNOWN_PLACEHOLDERS](repository);
+                } else {
+                    value = await vscode.window.showInputBox({
+                        title: "Input: " + placeholder.slice(3, -3)
+                    });
+                }
+
                 if (!value) {
                     vscode.window.showInformationMessage("Aborting workflow: " + workflow);
                     return;
@@ -82,6 +88,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 }
+
+const KNOWN_PLACEHOLDERS = {
+    ["<<<$REPOSITORY_NAME>>>"]: (item: TreeItem) => item.label.slice(0, item.label.indexOf(" - ")),
+    ["<<<$REPOSITORY_BRANCH>>>"]: (item: TreeItem) => item.label.slice(item.label.indexOf(" - ") + 3),
+    ["<<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>"]: (item: TreeItem) => {
+        const label = item.label;
+        const branch = label.slice(label.indexOf(" - ") + 3);
+        const slashIndex = branch.indexOf("/");
+        return slashIndex !== -1 ? branch.slice(slashIndex + 1) : branch;
+    },
+    ["<<<$REPOSITORY_PATH>>>"]: (item: TreeItem) => item.filePath
+};
 
 export function deactivate() {
 }
