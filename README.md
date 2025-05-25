@@ -7,27 +7,28 @@ the current branch (since its creation!) for one or more Git repositories.
 
 ## Features
 
-- **File Explorer Panel**  
+- 📁 **File Explorer Panel**  
   Displays all changed files (both tracked and untracked) from the specified Git repositories.
 
-- **Branch Diff View**  
+- 🔀 **Branch Diff View**  
   Additionally, shows ALL changes of the current branch compared to its origin (the fork-off point from the `master` or
   `main` branch)!
   This provides a clear view of every file the branch has ever changed, **ignoring intermediate merges**!
   Ideal for visualizing the full impact of a feature/topic branch.
 
-- **Custom Workflows**   
+- ⚙️ **Custom Workflows**   
   A custom workflow is a set of commands that are executed in succession within the selected repository.
-  Custom Workflows that can be executed in a specific repository by clicking on it in the extension's explorer.
+  Custom Workflows can be executed in a specific repository by clicking on it in the extension's explorer.
   See the demo shown in the gif above.
+  They can be easily defined in the settings!
 
-- **Git Status Indicators**  
+- 🔍 **Git Status Indicators**  
   Icons next to each file indicate its current Git status (e.g., modified, added, deleted).
 
-- **Multi-Repository Support**  
+- 🧬 **Multi-Repository Support**  
   Works seamlessly with multiple Git repositories within the same workspace.
 
-- **Live Updates**  
+- 🔄 **Live Updates**  
   Automatically refreshes when files change in one of the repositories or via a manual refresh button.
 
 ## QuickStart
