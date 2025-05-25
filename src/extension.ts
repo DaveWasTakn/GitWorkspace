@@ -70,15 +70,22 @@ export function activate(context: vscode.ExtensionContext) {
             commands[i] = cmd;
         }
 
+        let shellPath = vscode.env.shell;
+        const useChaining: boolean = vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('useChainingForWorkflows') ?? true;
+        if (useChaining && vscode.env.shell.toLowerCase().includes('powershell')) {
+            // powershell only allows the chaining operator from version 7 and above.
+            // default powershell version is likely 5.x --> try to use Git bash instead
+            shellPath = "cmd.exe";
+        }
+
         const terminal = vscode.window.createTerminal({
             name: workflow + " - workflow",
             cwd: repository.filePath,
             location: vscode.TerminalLocation.Panel,
-            shellPath: vscode.env.shell
+            shellPath: shellPath
         });
 
         terminal.show();
-        const useChaining: boolean = vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('useChainingForWorkflows') ?? true;
         if (useChaining) {
             terminal.sendText(commands.join(" && "));
         } else {

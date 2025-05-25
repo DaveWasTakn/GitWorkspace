@@ -50,7 +50,6 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         if (now - this.lastRefreshTime > 350) {
             this.lastRefreshTime = now;
             this._onDidChangeTreeData.fire();
-            console.log("refresh");
         }
     }
 
