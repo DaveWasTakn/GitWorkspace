@@ -101,27 +101,19 @@
         "gitWorkspace.customWorkflows": {
           "type": "object",
           "default": {
-            "commit": [
-              "git add --all",
-              "git commit -m \"<<<commit message>>>\""
-            ],
-            "commit + push": [
+            "commit and push": [
               "git add --all",
               "git commit -m \"<<<commit message>>>\"",
               "git push"
             ],
-            "commit with branchname": [
-              "git add --all",
-              "git commit -m \"<<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>\""
-            ],
-            "commit with branchname + push": [
+            "commit with branchname and push": [
               "git add --all",
               "git commit -m \"<<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>\"",
               "git push"
             ]
           },
-          "description": "Custom workflows that can be executed in a specific repository by clicking on it in the extension's explorer.\n\nA custom workflow is a set of commands that are executed in succession within the selected repository. Workflows are defined in your settings.json file, where each workflow has a name and a list of commands.\n\nPlaceholders can be included in your commands using the format <<<PLACEHOLDER NAME>>>. These will trigger a prompt asking the user to input a value when the workflow runs.\n\nExample: 'commit' workflow\nThis workflow stages all changes and commits them. It prompts the user to enter a commit message using the <<<commit message>>> placeholder:\n\n\"commit\": [\n  \"git add --all\",\n  \"git commit -m '<<<commit message>>>'\"\n]\n\nThe spawned terminal will use your preferred shell type set in the `terminal.integrated.defaultProfile` vscode settings, however, instead of PowerShell, the normal Command Prompt will be used on windows if the `useChainingForWorkflows` is enabled.",
-          "markdownDescription": "**Custom Workflows that can be executed in a specific repository by clicking on it in the extension's explorer!**\n\nA custom workflow is a set of commands that are executed in succession within the selected repository. Workflows are defined in your `settings.json` file, where each workflow has a name and a list of commands.\n\nPlaceholders can be included in your commands using the format `<<<PLACEHOLDER NAME>>>`. These will trigger a prompt asking the user to input a value when the workflow runs.\n\n**Example: 'commit' workflow**\nThis workflow stages all changes and commits them. It prompts the user to enter a commit message using the `<<<commit message>>>` placeholder:\n\n```json\n\"commit\": [\n  \"git add --all\",\n  \"git commit -m '<<<commit message>>>'\"\n]\n```\n\n_The spawned terminal will use your preferred shell type set in the `terminal.integrated.defaultProfile` vscode settings, however, instead of PowerShell, the normal Command Prompt will be used on windows if the `useChainingForWorkflows` is enabled._",
+          "description": "Custom workflows that can be executed in a specific repository by clicking on it in the extension's explorer.\n\nA custom workflow is a set of commands that are executed in succession within the selected repository. Workflows are defined in your settings.json file, where each workflow has a name and a list of commands.\n\nPlaceholders can be included in your commands using the format <<<PLACEHOLDER NAME>>>. These will trigger a prompt asking the user to input a value when the workflow runs.\n\nExample: 'commit' workflow\nThis workflow stages all changes and commits them. It prompts the user to enter a commit message using the <<<commit message>>> placeholder:\n\n\"commit\": [\n  \"git add --all\",\n  \"git commit -m '<<<commit message>>>'\"\n]\n\n_For ease of use the following special placeholders will be substituted automatically (without user interaction):`<<<$REPOSITORY_NAME>>>`,`<<<$REPOSITORY_BRANCH>>>`,`<<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>`,`<<<$REPOSITORY_PATH>>>`._\n\nThe spawned terminal will use your preferred shell type set in the `terminal.integrated.defaultProfile` vscode settings, however, instead of PowerShell, the normal Command Prompt will be used on windows if the `useChainingForWorkflows` is enabled.",
+          "markdownDescription": "**Custom Workflows that can be executed in a specific repository by clicking on it in the extension's explorer!**\n\nA custom workflow is a set of commands that are executed in succession within the selected repository. Workflows are defined in your `settings.json` file, where each workflow has a name and a list of commands.\n\nPlaceholders can be included in your commands using the format `<<<PLACEHOLDER NAME>>>`. These will trigger a prompt asking the user to input a value when the workflow runs.\n\n**Example: 'commit' workflow**\nThis workflow stages all changes and commits them. It prompts the user to enter a commit message using the `<<<commit message>>>` placeholder:\n\n```json\n\"commit\": [\n  \"git add --all\",\n  \"git commit -m '<<<commit message>>>'\"\n]\n```\n\n_For ease of use the following special placeholders will be substituted automatically (without user interaction):`<<<$REPOSITORY_NAME>>>`,`<<<$REPOSITORY_BRANCH>>>`,`<<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>`,`<<<$REPOSITORY_PATH>>>`._\n\n_The spawned terminal will use your preferred shell type set in the `terminal.integrated.defaultProfile` vscode settings, however, instead of PowerShell, the normal Command Prompt will be used on windows if the `useChainingForWorkflows` is enabled._",
           "order": 3
         },
         "gitWorkspace.useChainingForWorkflows": {
