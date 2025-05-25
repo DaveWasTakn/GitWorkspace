@@ -29,6 +29,58 @@ export function activate(context: vscode.ExtensionContext) {
             fileTreeDataProvider.refresh();
         }
     });
+
+    vscode.commands.registerCommand('gitWorkspace.workFlowQuickPick', async (repository: TreeItem) => {
+        const workflows: Record<string, string[]> = vscode.workspace.getConfiguration('gitWorkspace').get<Record<string, string[]>>('customWorkflows') ?? {};
+
+        if (!workflows || Object.keys(workflows).length === 0) {
+            vscode.window.showInformationMessage('No workflows configured in settings.');
+            return;
+        }
+
+        const workflow = await vscode.window.showQuickPick(Object.keys(workflows), {
+            title: "Select a Workflow to run in the repository: " + repository.label
+        });
+
+        if (!workflow) {
+            return;
+        }
+
+        const commands = workflows[workflow];
+
+        for (let i = 0; i < commands.length; i++) {
+            let cmd = commands[i];
+            const placeholders = cmd.matchAll(/<<<.*?>>>/g);
+            for (const [placeholder] of placeholders) {
+                const value = await vscode.window.showInputBox({
+                    title: "Input: " + placeholder.slice(3,-3)
+                });
+                if (!value) {
+                    vscode.window.showInformationMessage("Aborting workflow: " + workflow);
+                    return;
+                }
+                cmd = cmd.replace(placeholder, value);
+            }
+            commands[i] = cmd;
+        }
+
+        const terminal = vscode.window.createTerminal({
+            name: workflow + " - workflow",
+            cwd: repository.filePath,
+            location: vscode.TerminalLocation.Panel,
+            shellPath: vscode.env.shell
+        });
+
+        terminal.show();
+        const useChaining: boolean = vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('useChainingForWorkflows') ?? true;
+        if (useChaining) {
+            terminal.sendText(commands.join(" && "));
+        } else {
+            for (const cmd of commands) {
+                terminal.sendText(cmd);
+            }
+        }
+    });
 }
 
 export function deactivate() {

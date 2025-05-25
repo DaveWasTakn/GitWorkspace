@@ -7,7 +7,7 @@ import * as fs from 'fs';
 
 const execAsync = promisify(execFile);
 
-async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
+export async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
     return (await execAsync(executable, args, {cwd})).stdout;
 }
 
@@ -153,6 +153,11 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             const branch: string | undefined = await this.getBranchName(repository);
             if (branch) {
                 const r: TreeItem = new TreeItem(path.basename(repository) + " - " + branch, repository, ItemType.REPOSITORY, repository, undefined);
+                r.command = {
+                    command: 'gitWorkspace.workFlowQuickPick',
+                    title: 'Run a Workflow',
+                    arguments: [r]
+                };
                 r.setIcon("git_repo.png");
                 treeItems.push(r);
 

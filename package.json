@@ -88,7 +88,7 @@
         "gitWorkspace.path_to_git_executable": {
           "type": "string",
           "description": "OPTIONAL: Path to a specific git executable. If none is provided, the extension will try to use the one found in your PATH.\n\nPlease provide absolute paths using the correct format for your operating system: For Windows paths should start with a drive letter like 'C:' and can use either backslashes ('\\') or forward slashes ('/'). On Unix-like systems (Linux, macOS and WSL), use forward slashes ('/').",
-          "markdownDescription": "_OPTIONAL_: **Path to a specific git executable.** If none is provided, the extension will try to use the one found in your PATH.\n\n_Please provide an absolute path using the correct format for your operating system: For Windows paths should start with a drive letter like `C:` and can use either backslashes (`\\`) or forward slashes (`/`). On Unix-like systems (Linux, macOS and WSL), use forward slashes (`/`)._",
+          "markdownDescription": "**_OPTIONAL_**: **Path to a specific git executable.** If none is provided, the extension will try to use the one found in your PATH.\n\n_Please provide an absolute path using the correct format for your operating system: For Windows paths should start with a drive letter like `C:` and can use either backslashes (`\\`) or forward slashes (`/`). On Unix-like systems (Linux, macOS and WSL), use forward slashes (`/`)._",
           "order": 1
         },
         "gitWorkspace.useFileWatchers": {
@@ -97,6 +97,30 @@
           "description": "Enable automatic view updates when files in the specified repositories are created, changed, or deleted.",
           "markdownDescription": "Enable automatic view updates when files in the specified repositories are created, changed, or deleted.",
           "order": 2
+        },
+        "gitWorkspace.customWorkflows": {
+          "type": "object",
+          "default": {
+            "commit": [
+              "git add --all",
+              "git commit -m \"<<<commit message>>>\""
+            ],
+            "commit + push": [
+              "git add --all",
+              "git commit -m \"<<<commit message>>>\"",
+              "git push"
+            ]
+          },
+          "description": "Custom workflows that can be executed in a specific repository by clicking on it in the extension's explorer.\n\nA custom workflow is a set of commands that are executed in succession within the selected repository. Workflows are defined in your settings.json file, where each workflow has a name and a list of commands.\n\nPlaceholders can be included in your commands using the format <<<PLACEHOLDER NAME>>>. These will trigger a prompt asking the user to input a value when the workflow runs.\n\nExample: 'commit' workflow\nThis workflow stages all changes and commits them. It prompts the user to enter a commit message using the <<<commit message>>> placeholder:\n\n\"commit\": [\n  \"git add --all\",\n  \"git commit -m '<<<commit message>>>'\"\n]",
+          "markdownDescription": "**Custom Workflows that can be executed in a specific repository by clicking on it in the extension's explorer!**\n\nA custom workflow is a set of commands that are executed in succession within the selected repository. Workflows are defined in your `settings.json` file, where each workflow has a name and a list of commands.\n\nPlaceholders can be included in your commands using the format `<<<PLACEHOLDER NAME>>>`. These will trigger a prompt asking the user to input a value when the workflow runs.\n\n**Example: 'commit' workflow**\nThis workflow stages all changes and commits them. It prompts the user to enter a commit message using the `<<<commit message>>>` placeholder:\n\n```json\n\"commit\": [\n  \"git add --all\",\n  \"git commit -m '<<<commit message>>>'\"\n]\n```",
+          "order": 3
+        },
+        "gitWorkspace.useChainingForWorkflows": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to use the chaining operator ` && ` between the individual commands of a custom workflow. Leaving this option enabled is recommended, since it stops the execution of subsequent commands whenever a command fails!\n\nDisabling this option will execute each command of a selected workflow one by one, without being able to check whether the previous command completed successfully (This is a limitation of the VSCode API :/).\n\nNote, that for **Windows Powershell**, the chaining operator only works from version 7+ (so you can either upgrade powershell, use a different default shell (even the Windows Command Prompt supports the chaining operator...), adjust your workflow to be a single command with your own chaining logic, or disable this option).\n\nTo change the default shell used by VSCode you can go to the settings and search for `terminal.integrated.defaultProfile`, then change it for your platform, e.g. on windows you need to change `terminal.integrated.defaultProfile.windows`.",
+          "markdownDescription": "Whether to use the chaining operator ` && ` between the individual commands of a custom workflow. Leaving this option enabled is recommended, since it stops the execution of subsequent commands whenever a command fails!\n\nDisabling this option will execute each command of a selected workflow one by one, without being able to check whether the previous command completed successfully (This is a limitation of the VSCode API :/).\n\nNote, that for **Windows Powershell**, the chaining operator only works from version 7+ (so you can either upgrade powershell, use a different default shell (even the Windows Command Prompt supports the chaining operator...), adjust your workflow to be a single command with your own chaining logic, or disable this option).\n\nTo change the default shell used by VSCode you can go to the settings and search for `terminal.integrated.defaultProfile`, then change it for your platform, e.g. on windows you need to change `terminal.integrated.defaultProfile.windows`.",
+          "order": 4
         }
       }
     }
