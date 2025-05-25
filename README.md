@@ -3,7 +3,7 @@
 A convenient Git-based file explorer that displays (1) currently changed files, and (2) ALL files ever modified by
 the current branch (since its creation!) for one or more Git repositories.
 
-<img src="resources/feature_workflows.gif" width="800" height="auto">
+<img src="resources/workflow_feature.gif" width="800" height="auto">
 
 ## Features
 
