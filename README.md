@@ -3,6 +3,8 @@
 A convenient Git-based file explorer that displays (1) currently changed files, and (2) ALL files ever modified by
 the current branch (since its creation!) for one or more Git repositories.
 
+<img src="resources/feature_workflows.gif" width="800" height="auto">
+
 ## Features
 
 - **File Explorer Panel**  
@@ -14,6 +16,11 @@ the current branch (since its creation!) for one or more Git repositories.
   This provides a clear view of every file the branch has ever changed, **ignoring intermediate merges**!
   Ideal for visualizing the full impact of a feature/topic branch.
 
+- **Custom Workflows**   
+  A custom workflow is a set of commands that are executed in succession within the selected repository.
+  Custom Workflows that can be executed in a specific repository by clicking on it in the extension's explorer.
+  See the demo shown in the gif above.
+
 - **Git Status Indicators**  
   Icons next to each file indicate its current Git status (e.g., modified, added, deleted).
 
@@ -21,8 +28,7 @@ the current branch (since its creation!) for one or more Git repositories.
   Works seamlessly with multiple Git repositories within the same workspace.
 
 - **Live Updates**  
-  Automatically refreshes when files change in one of the repositories, when the VS Code window regains focus,
-  (or via a manual refresh button).
+  Automatically refreshes when files change in one of the repositories or via a manual refresh button.
 
 ## QuickStart
 
