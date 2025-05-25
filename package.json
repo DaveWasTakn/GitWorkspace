@@ -101,11 +101,6 @@
         "gitWorkspace.customWorkflows": {
           "type": "object",
           "default": {
-            "commit and push": [
-              "git add --all",
-              "git commit -m \"<<<commit message>>>\"",
-              "git push"
-            ],
             "commit with branchname and push": [
               "git add --all",
               "git commit -m \"<<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>\"",
