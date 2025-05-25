@@ -74,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
         const useChaining: boolean = vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('useChainingForWorkflows') ?? true;
         if (useChaining && vscode.env.shell.toLowerCase().includes('powershell')) {
             // powershell only allows the chaining operator from version 7 and above.
-            // default powershell version is likely 5.x --> try to use Git bash instead
+            // default powershell version is likely 5.x --> use Command Prompt instead
             shellPath = "cmd.exe";
         }
 
