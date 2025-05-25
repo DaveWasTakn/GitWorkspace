@@ -15,12 +15,6 @@ export function activate(context: vscode.ExtensionContext) {
         fileTreeDataProvider.refresh();
     });
 
-    vscode.window.onDidChangeWindowState((state) => {
-        if (state.focused) {
-            fileTreeDataProvider.refresh();
-        }
-    });
-
     vscode.commands.registerCommand('gitWorkspace.onClickTreeItem', x => {
         if (treeView.selection[0] !== undefined && treeView.selection[0] !== null) {
             const treeItem: TreeItem = treeView.selection[0];
