@@ -1,4 +1,6 @@
 # Git Workspace
+![Installs Badge](https://img.shields.io/visual-studio-marketplace/i/daveWasTaken.gitworkspace?style=for-the-badge)
+![Stars Badge](https://img.shields.io/visual-studio-marketplace/stars/daveWasTaken.gitworkspace?style=for-the-badge)
 
 A convenient Git-based file explorer that displays (1) currently changed files, and (2) ALL files ever modified by
 the current branch (since its creation!) for one or more Git repositories.
