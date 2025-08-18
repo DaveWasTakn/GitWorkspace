@@ -5,10 +5,20 @@ import {promisify} from 'util';
 import {execFile} from 'child_process';
 import * as fs from 'fs';
 
+export const OUTPUT_CHANNEL = vscode.window.createOutputChannel("Git Workspace");
 const execAsync = promisify(execFile);
 
 export async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
+    outputChannelLog(`Executing: "${executable} ${args.join(" ")}" in directory: "${cwd}"`, OUTPUT_CHANNEL);
     return (await execAsync(executable, args, {cwd})).stdout;
+}
+
+export function outputChannelLog(message: string, outputChannel: vscode.OutputChannel, show: boolean = false) {
+    outputChannel.appendLine(message);
+
+    if (show) {
+        outputChannel.show(true);
+    }
 }
 
 type RepositoryInfo = {
