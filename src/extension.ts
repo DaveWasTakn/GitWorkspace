@@ -65,6 +65,13 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor((editor: TextEditor | undefined) => {
         onDidChangeActiveTextEditor(editor, treeView, fileTreeDataProvider);
     });
+
+    // manually trigger selection sync after a delay, since there is no event to know when a treeview is fully populated
+    delay(2000).then(() => onDidChangeActiveTextEditor(vscode.window.activeTextEditor, treeView, fileTreeDataProvider));
+}
+
+function delay(ms: number): Promise<any> {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 export function deactivate() {
