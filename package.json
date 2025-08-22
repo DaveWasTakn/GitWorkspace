@@ -4,7 +4,13 @@
   "description": "A convenient Git-based file explorer that displays (1) currently changed files, and (2) ALL files ever modified by the current branch (since its creation!) for one or more Git repositories.",
   "publisher": "daveWasTaken",
   "version": "1.2.0",
-  "keywords": ["git", "workspace", "branch", "file", "explorer"],
+  "keywords": [
+    "git",
+    "workspace",
+    "branch",
+    "file",
+    "explorer"
+  ],
   "license": "SEE LICENSE IN LICENSE.txt",
   "icon": "resources/folder-git.png",
   "homepage": "https://github.com/DaveWasTakn/GitWorkspace",
@@ -41,6 +47,31 @@
       {
         "command": "gitWorkspace.onClickTreeItem",
         "title": "open"
+      },
+      {
+        "command": "gitWorkspace_container_files.quickAction",
+        "title": "quickAction",
+        "icon": "$(symbol-event)"
+      },
+      {
+        "command": "gitWorkspace_container_files.diffHead",
+        "title": "current diff"
+      },
+      {
+        "command": "gitWorkspace_container_files.diffBranch",
+        "title": "branch diff"
+      },
+      {
+        "command": "gitWorkspace_container_files.rename",
+        "title": "rename"
+      },
+      {
+        "command": "gitWorkspace_container_files.rollback",
+        "title": "rollback"
+      },
+      {
+        "command": "gitWorkspace_container_files.delete",
+        "title": "delete"
       }
     ],
     "viewsContainers": {
@@ -70,6 +101,38 @@
         {
           "command": "gitWorkspace_container_files.reset",
           "when": "view == gitWorkspace_container_files"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "gitWorkspace_container_files.quickAction",
+          "when": "view == gitWorkspace_container_files && viewItem == FILE",
+          "group": "inline"
+        },
+        {
+          "command": "gitWorkspace_container_files.diffHead",
+          "when": "view == gitWorkspace_container_files && viewItem == FILE",
+          "group": "1@1"
+        },
+        {
+          "command": "gitWorkspace_container_files.diffBranch",
+          "when": "view == gitWorkspace_container_files && viewItem == FILE",
+          "group": "1@2"
+        },
+        {
+          "command": "gitWorkspace_container_files.rename",
+          "when": "view == gitWorkspace_container_files && viewItem == FILE",
+          "group": "2@1"
+        },
+        {
+          "command": "gitWorkspace_container_files.rollback",
+          "when": "view == gitWorkspace_container_files && viewItem == FILE",
+          "group": "2@2"
+        },
+        {
+          "command": "gitWorkspace_container_files.delete",
+          "when": "view == gitWorkspace_container_files && viewItem == FILE",
+          "group": "2@3"
         }
       ]
     },

@@ -8,7 +8,12 @@ import * as fs from 'fs';
 const execAsync = promisify(execFile);
 
 export async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
+    console.log(`exec: ${executable} ${args.join(" ")}`);
     return (await execAsync(executable, args, {cwd})).stdout;
+}
+
+export async function getFileAtRevision(repoPath: string, filePath: string, revision: string): Promise<string> {
+    return execSyscall('git', ['show', `${revision}:${filePath}`], repoPath);
 }
 
 type RepositoryInfo = {
@@ -26,7 +31,7 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private data: Map<string, TreeItem[]> = new Map<string, TreeItem[]>();
     private gitPath: string = "git";
-    private repositoryInfos: RepositoryInfos = {};
+    public repositoryInfos: RepositoryInfos = {};
     private useFileWatchers: boolean = true;
     private fileWatchers: Record<string, vscode.FileSystemWatcher> = {};
     private lastRefreshTime = 0;
@@ -153,9 +158,7 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             if (branch) {
                 const r: TreeItem = new TreeItem(path.basename(repository) + " - " + branch, repository, ItemType.REPOSITORY, repository, undefined);
                 r.command = {
-                    command: 'gitWorkspace.workFlowQuickPick',
-                    title: 'Run a Workflow',
-                    arguments: [r]
+                    command: 'gitWorkspace.workFlowQuickPick', title: 'Run a Workflow', arguments: [r]
                 };
                 r.setIcon("git_repo.png");
                 treeItems.push(r);
@@ -206,7 +209,7 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     }
 
 
-    private async getBranchName(repository: string): Promise<string | undefined> {
+    public async getBranchName(repository: string): Promise<string | undefined> {
         try {
             let result = await execSyscall(this.gitPath, BRANCH_NAME_COMMAND, repository);
             return result.replace(/[\r\n]/g, "");
@@ -309,6 +312,7 @@ export class TreeItem extends vscode.TreeItem {
         if (this.type !== ItemType.DIRECTORY) {
             this.setCorrectIcon();
         }
+        this.setContextValue();
     }
 
     public setCorrectIcon() {
@@ -347,7 +351,12 @@ export class TreeItem extends vscode.TreeItem {
 
     public changeType(newType: ItemType) {
         this.type = newType;
+        this.setContextValue();
         this.updateCollapsibleState();
+    }
+
+    private setContextValue() {
+        this.contextValue = ItemType[this.type];
     }
 
     async onItemSelection() {
