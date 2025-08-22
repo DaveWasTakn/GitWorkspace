@@ -9,7 +9,7 @@ import {
     TreeView,
     Uri
 } from 'vscode';
-import {execSyscall, FileTreeDataProvider, getFileAtRevision, GitType, TreeItem} from './FileTreeDataProvider';
+import {execSyscall, FileTreeDataProvider, getTempFileAtRevision, GitType, TreeItem} from './FileTreeDataProvider';
 import * as path from 'path';
 import {promises as fs} from "fs";
 import trash from 'trash';
@@ -114,22 +114,16 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string): Pr
         filePath = filePath.replace(/\\/g, "/");
     }
 
-    let fileContentAtRevision: string;
+    let fileAtRevision: string;
     try {
-        fileContentAtRevision = await getFileAtRevision(treeItem.repo, filePath, revision);
+        fileAtRevision = await getTempFileAtRevision(treeItem.repo, filePath, revision);
     } catch (e) {
         vscode.window.showInformationMessage(`The file did not exist at the specified revision : ${revision}`);
         return false;
     }
 
-    const histProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("gitDiff", {
-        provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
-            return fileContentAtRevision;
-        }
-    } as TextDocumentContentProvider);
-
-    const disposables: Disposable[] = [histProviderRegistration];
-    const oldContentUri: Uri = vscode.Uri.from({scheme: "gitDiff", path: filePath, query: revision});
+    const disposables: Disposable[] = [];
+    const oldContentUri: Uri = vscode.Uri.file(fileAtRevision);
     let newContentUri: Uri = vscode.Uri.file(treeItem.getAbsPath());
 
     if (isDeleted(treeItem)) {  // If the file is deleted then display an empty new document

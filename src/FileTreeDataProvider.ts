@@ -4,6 +4,8 @@ import * as path from 'path';
 import {promisify} from 'util';
 import {execFile} from 'child_process';
 import * as fs from 'fs';
+import * as fsp from "fs/promises";
+import * as os from "os";
 
 const execAsync = promisify(execFile);
 
@@ -12,8 +14,27 @@ export async function execSyscall(executable: string, args: string[], cwd: strin
     return (await execAsync(executable, args, {cwd})).stdout;
 }
 
-export async function getFileAtRevision(repoPath: string, filePath: string, revision: string): Promise<string> {
-    return execSyscall('git', ['show', `${revision}:${filePath}`], repoPath);
+export async function execSyscallBuffer(executable: string, args: string[], cwd: string): Promise<Buffer> {
+    return (await execAsync(
+        executable,
+        args,
+        {
+            cwd,
+            encoding: "buffer"
+        }
+    )).stdout as Buffer;
+}
+
+export async function getTempFileAtRevision(repoPath: string, filePath: string, revision: string): Promise<string> {
+    const buffer = await execSyscallBuffer("git", ["show", `${revision}:${filePath}`], repoPath);
+
+    const tmpFile = path.join(
+        os.tmpdir(),
+        `vscode_gitDiff_${revision}:${path.basename(filePath)}`
+    );
+    await fsp.writeFile(tmpFile, buffer as Uint8Array);
+
+    return tmpFile;
 }
 
 type RepositoryInfo = {
