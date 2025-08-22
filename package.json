@@ -50,11 +50,11 @@
       },
       {
         "command": "gitWorkspace_container_files.diffHead",
-        "title": "current diff"
+        "title": "diff: last commit"
       },
       {
         "command": "gitWorkspace_container_files.diffBranch",
-        "title": "branch diff"
+        "title": "diff: branch origin"
       },
       {
         "command": "gitWorkspace_container_files.rename",
