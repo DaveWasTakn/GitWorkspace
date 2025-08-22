@@ -93,14 +93,8 @@ function cmd_onClickTreeItem(treeView: TreeView<TreeItem>) {
     }
 }
 
-function reveal(treeItem: TreeItem, treeView: TreeView<TreeItem>) { // TODO check if still necessary to do manually!
-    treeView.reveal(treeItem, {select: true, focus: true, expand: false});
-}
-
 async function cmd_diffHead(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider, treeView: TreeView<TreeItem>) {
-    if (await showDiff(treeItem, `${treeItem.label} (HEAD)  ↔  ${treeItem.label}`, "HEAD")) {
-        reveal(treeItem, treeView);
-    }
+    await showDiff(treeItem, `${treeItem.label} (HEAD)  ↔  ${treeItem.label}`, "HEAD");
 }
 
 async function cmd_diffBranch(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider, treeView: TreeView<TreeItem>) {
@@ -110,9 +104,7 @@ async function cmd_diffBranch(treeItem: TreeItem, fileTreeDataProvider: FileTree
         return;
     }
     const branchOriginRevision: string = fileTreeDataProvider.repositoryInfos[treeItem.repo].branches[branchName];
-    if (await showDiff(treeItem, `${treeItem.label} (branch-origin)  ↔  ${treeItem.label}`, branchOriginRevision)) {
-        reveal(treeItem, treeView);
-    }
+    await showDiff(treeItem, `${treeItem.label} (branch-origin)  ↔  ${treeItem.label}`, branchOriginRevision);
 }
 
 async function showDiff(treeItem: TreeItem, title: string, revision: string): Promise<boolean> {
@@ -205,11 +197,6 @@ async function safeRename(oldPath: string, newPath: string) {
 }
 
 async function cmd_rollback(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
-    if (isDeleted(treeItem)) {
-        vscode.window.showInformationMessage("Cannot rollback a deleted file.");
-        return;
-    }
-
     if (await confirmation("Are you sure you want to rollback the file: " + treeItem.label + " to HEAD?")) {
         await execSyscall("git", ["checkout", "HEAD", "--", treeItem.filePath], treeItem.repo);
     }
@@ -327,12 +314,14 @@ function onDidChangeConfiguration(event: ConfigurationChangeEvent, fileTreeDataP
 function onDidChangeActiveTextEditor(editor: TextEditor | undefined, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider) {
     if (!editor) {
         // unselecting items still not possible - heavily requested feature on github stalled for multiple years now by microsoft :(
-        // TODO maybe select repository ?
+        if (treeView.selection.length > 0) { // if there is a selection, just select the repo ...
+            treeView.reveal(Object.values(fileTreeDataProvider.treeItemPathsLookup)[0]);
+        }
         return;
     }
 
     const treeItem: TreeItem | undefined = fileTreeDataProvider.treeItemPathsLookup[editor.document.uri.fsPath];
     if (treeItem) {
-        reveal(treeItem, treeView);
+        treeView.reveal(treeItem);
     }
 }
