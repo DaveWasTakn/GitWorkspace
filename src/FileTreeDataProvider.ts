@@ -31,7 +31,6 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private data: Map<string, TreeItem[]> = new Map<string, TreeItem[]>();
     private gitPath: string = "git";
-    public repositoryInfos: RepositoryInfos = {};
     private useFileWatchers: boolean = true;
     private fileWatchers: Record<string, vscode.FileSystemWatcher> = {};
     private lastRefreshTime = 0;
@@ -39,6 +38,9 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
     private readonly context: ExtensionContext;
+
+    public repositoryInfos: RepositoryInfos = {};
+    public treeItemPathsLookup: Record<string, TreeItem> = {};
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -77,6 +79,7 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
         const treeItems: TreeItem[] = [];
 
         if (!element) {
+            this.treeItemPathsLookup = {};
             let repositories: string[] | undefined = vscode.workspace.getConfiguration('gitWorkspace').get("path_to_repository");
 
             if (!repositories || repositories.length === 0) {
@@ -96,6 +99,7 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
             this.resolveDirectory(element, treeItems);
         }
 
+        treeItems.forEach(x => this.treeItemPathsLookup[vscode.Uri.file(x.getAbsPath()).fsPath] = x);
         return treeItems;
     }
 
@@ -387,6 +391,10 @@ export class TreeItem extends vscode.TreeItem {
 
     getParent() {
         return this.parent;
+    }
+
+    getAbsPath(): string {
+        return path.join(this.repo, this.filePath);
     }
 
     private updateCollapsibleState() {

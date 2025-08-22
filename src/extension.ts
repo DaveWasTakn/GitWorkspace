@@ -5,6 +5,7 @@ import {
     Disposable,
     ProviderResult,
     TextDocumentContentProvider,
+    TextEditor,
     TreeView,
     Uri
 } from 'vscode';
@@ -60,6 +61,10 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration(event => {
         onDidChangeConfiguration(event, fileTreeDataProvider);
     });
+
+    vscode.window.onDidChangeActiveTextEditor((editor: TextEditor | undefined) => {
+        onDidChangeActiveTextEditor(editor, treeView, fileTreeDataProvider);
+    });
 }
 
 export function deactivate() {
@@ -81,7 +86,7 @@ function cmd_onClickTreeItem(treeView: TreeView<TreeItem>) {
     }
 }
 
-function reveal(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
+function reveal(treeItem: TreeItem, treeView: TreeView<TreeItem>) { // TODO check if still necessary to do manually!
     treeView.reveal(treeItem, {select: true, focus: true, expand: false});
 }
 
@@ -119,17 +124,17 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string): Pr
     }
 
     const histProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("gitDiff", {
-        provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> { // TODO encode the info in the uri and reuse the documentProvider
+        provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
             return fileContentAtRevision;
         }
     } as TextDocumentContentProvider);
 
     const disposables: Disposable[] = [histProviderRegistration];
     const oldContentUri: Uri = vscode.Uri.from({scheme: "gitDiff", path: filePath, query: revision});
-    let newContentUri: Uri = vscode.Uri.file(path.join(treeItem.repo, treeItem.filePath));
+    let newContentUri: Uri = vscode.Uri.file(treeItem.getAbsPath());
 
     if (treeItem.gitType === GitType.DELETED || treeItem.gitType === GitType.COMMITTED_DELETED) {  // If the file is deleted then display an empty new document
-        const emptyProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("empty", { // TODO encode the info in the uri and reuse the documentProvider
+        const emptyProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("empty", {
             provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
                 return "";
             }
@@ -156,7 +161,7 @@ async function cmd_rename(treeItem: TreeItem) {
         return;
     }
 
-    const oldFilePath = path.join(treeItem.repo, treeItem.filePath);
+    const oldFilePath = treeItem.getAbsPath();
     const newFilePath = path.join(treeItem.repo, treeItem.filePath.replace(treeItem.label, newName));
 
     await safeRename(oldFilePath, newFilePath);
@@ -184,7 +189,7 @@ async function cmd_rollback(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
 
 async function cmd_delete(treeItem: TreeItem) {
     if (await confirmation(`Are you sure you want to delete file: ${treeItem.label}?`)) {
-        await trash(path.join(treeItem.repo, treeItem.filePath));
+        await trash(treeItem.getAbsPath());
     }
 }
 
@@ -278,5 +283,18 @@ function onDidChangeConfiguration(event: ConfigurationChangeEvent, fileTreeDataP
         fileTreeDataProvider.disposeFileWatchers();
         fileTreeDataProvider.readConfig_useFileWatchers();
         fileTreeDataProvider.refresh();
+    }
+}
+
+function onDidChangeActiveTextEditor(editor: TextEditor | undefined, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider) {
+    if (!editor) {
+        // unselecting items still not possible - heavily requested feature on github stalled for multiple years now by microsoft :(
+        // TODO maybe select repository ?
+        return;
+    }
+
+    const treeItem: TreeItem | undefined = fileTreeDataProvider.treeItemPathsLookup[editor.document.uri.fsPath];
+    if (treeItem) {
+        reveal(treeItem, treeView);
     }
 }
