@@ -12,7 +12,6 @@ import {
 import {execSyscall, FileTreeDataProvider, getTempFileAtRevision, GitType, TreeItem} from './FileTreeDataProvider';
 import * as path from 'path';
 import {promises as fs} from "fs";
-import trash from 'trash';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -122,18 +121,17 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string): Pr
         return false;
     }
 
-    const oldContentUri: Uri = vscode.Uri.from({scheme: "gitDiff", path: filePath, query: revision});
-    let newContentUri: Uri = vscode.Uri.file(treeItem.getAbsPath());
-
-    const oldContent: string = (await vscode.workspace.openTextDocument(vscode.Uri.file(fileAtRevision))).getText();
+    const histContent: string = (await vscode.workspace.openTextDocument(vscode.Uri.file(fileAtRevision))).getText();
+    await vscode.workspace.fs.delete(vscode.Uri.file(fileAtRevision), {recursive: false, useTrash: false});
     const histProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("gitDiff", {
         provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
             // use textDocument provider instead of just providing the fileUri to make the old version view-only
-            return oldContent;
+            return histContent;
         }
     } as TextDocumentContentProvider);
 
     const disposables: Disposable[] = [histProviderRegistration];
+    let newContentUri: Uri = vscode.Uri.file(treeItem.getAbsPath());
 
     if (isDeleted(treeItem)) {  // If the file is deleted then display an empty new document
         const emptyProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("empty", {
@@ -148,7 +146,7 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string): Pr
 
     vscode.commands.executeCommand(
         "vscode.diff",
-        oldContentUri,
+        vscode.Uri.from({scheme: "gitDiff", path: filePath, query: revision}),
         newContentUri,
         title
     ).then(() => disposables.forEach(x => x.dispose));
@@ -216,7 +214,7 @@ async function cmd_delete(treeItem: TreeItem) {
     }
 
     if (await confirmation(`Are you sure you want to delete the file: ${treeItem.label}?`)) {
-        await trash(treeItem.getAbsPath());
+        await vscode.workspace.fs.delete(vscode.Uri.file(treeItem.getAbsPath()), {recursive: false, useTrash: true});
     }
 }
 
