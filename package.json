@@ -49,11 +49,6 @@
         "title": "open"
       },
       {
-        "command": "gitWorkspace_container_files.quickAction",
-        "title": "quickAction",
-        "icon": "$(symbol-event)"
-      },
-      {
         "command": "gitWorkspace_container_files.diffHead",
         "title": "current diff"
       },
@@ -104,11 +99,6 @@
         }
       ],
       "view/item/context": [
-        {
-          "command": "gitWorkspace_container_files.quickAction",
-          "when": "view == gitWorkspace_container_files && viewItem == FILE",
-          "group": "inline"
-        },
         {
           "command": "gitWorkspace_container_files.diffHead",
           "when": "view == gitWorkspace_container_files && viewItem == FILE",

@@ -33,10 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
         cmd_onClickTreeItem(treeView);
     });
 
-    vscode.commands.registerCommand('gitWorkspace_container_files.quickAction', (treeItem: TreeItem) => {
-        cmd_quickAction(treeItem, treeView);
-    });
-
     vscode.commands.registerCommand('gitWorkspace_container_files.diffHead', async (treeItem: TreeItem) => {
         await cmd_diffHead(treeItem, fileTreeDataProvider, treeView);
     });
@@ -87,11 +83,6 @@ function cmd_onClickTreeItem(treeView: TreeView<TreeItem>) {
 
 function reveal(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
     treeView.reveal(treeItem, {select: true, focus: true, expand: false});
-}
-
-function cmd_quickAction(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
-    reveal(treeItem, treeView);
-    // TODO provide option to choose quickAction - check and call corresponding function
 }
 
 async function cmd_diffHead(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider, treeView: TreeView<TreeItem>) {
