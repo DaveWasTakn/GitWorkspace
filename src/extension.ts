@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import {
     CancellationToken,
     ConfigurationChangeEvent,
+    Disposable,
     ProviderResult,
     TextDocumentContentProvider,
     TreeView,
@@ -88,26 +89,24 @@ function cmd_quickAction(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
 }
 
 async function cmd_diffHead(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider) {
-    await showDiff(treeItem, "Diff to HEAD: " + treeItem.label, "HEAD");
+    await showDiff(treeItem, `${treeItem.label} (HEAD)  ↔  ${treeItem.label}`, "HEAD");
 }
 
 async function cmd_diffBranch(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider) {
     const branchName: string | undefined = await fileTreeDataProvider.getBranchName(treeItem.repo);
-
     if (!branchName) {
-        vscode.window.showErrorMessage("Could not determine branch name...");
+        vscode.window.showErrorMessage("Could not determine branch name ...");
         return;
     }
-
     const branchOriginRevision: string = fileTreeDataProvider.repositoryInfos[treeItem.repo].branches[branchName];
-    await showDiff(treeItem, "Diff to branch-origin: " + treeItem.label, branchOriginRevision);
+    await showDiff(treeItem, `${treeItem.label} (branch-origin)  ↔  ${treeItem.label}`, branchOriginRevision);
 }
 
 async function showDiff(treeItem: TreeItem, title: string, revision: string) {
     let filePath = path.normalize(treeItem.filePath);
 
     if (path.sep === "\\") {
-        filePath = filePath.replace("\\", "/");
+        filePath = filePath.replace(/\\/g, "/");
     }
 
     let fileContentAtRevision: string;
@@ -119,36 +118,32 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string) {
     }
 
     const histProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("gitDiff", {
-        provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
-            return fileContentAtRevision;   // ... maybe think about encoding the info in the uri and reusing the documentProvider
+        provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> { // TODO encode the info in the uri and reuse the documentProvider
+            return fileContentAtRevision;
         }
     } as TextDocumentContentProvider);
 
-    if (treeItem.gitType === GitType.DELETED || treeItem.gitType === GitType.COMMITTED_DELETED) {  // If the file is deleted then display it in the diff view next to an empty new document
-        const emptyProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("empty", {
+    const disposables: Disposable[] = [histProviderRegistration];
+    const oldContentUri: Uri = vscode.Uri.from({scheme: "gitDiff", path: filePath, query: revision});
+    let newContentUri: Uri = vscode.Uri.file(path.join(treeItem.repo, treeItem.filePath));
+
+    if (treeItem.gitType === GitType.DELETED || treeItem.gitType === GitType.COMMITTED_DELETED) {  // If the file is deleted then display an empty new document
+        const emptyProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("empty", { // TODO encode the info in the uri and reuse the documentProvider
             provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
                 return "";
             }
         } as TextDocumentContentProvider);
 
-        vscode.commands.executeCommand(
-            "vscode.diff",
-            vscode.Uri.parse(`gitDiff:${treeItem.filePath}:${revision}`),
-            vscode.Uri.parse(`empty:${treeItem.filePath}:${revision}`),
-            title
-        ).then(() => {
-            histProviderRegistration.dispose();
-            emptyProviderRegistration.dispose();
-        });
-    } else {
-        vscode.commands.executeCommand(
-            "vscode.diff",
-            vscode.Uri.parse(`gitDiff:${treeItem.filePath}:${revision}`),
-            vscode.Uri.file(path.join(treeItem.repo, treeItem.filePath)),
-            title
-        ).then(() => histProviderRegistration.dispose());
+        disposables.push(emptyProviderRegistration);
+        newContentUri = vscode.Uri.from({scheme: "empty", path: filePath, query: revision});
     }
 
+    vscode.commands.executeCommand(
+        "vscode.diff",
+        oldContentUri,
+        newContentUri,
+        title
+    ).then(() => disposables.forEach(x => x.dispose));
 }
 
 function cmd_rename(treeItem: TreeItem) {
