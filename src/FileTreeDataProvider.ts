@@ -30,7 +30,7 @@ export async function getTempFileAtRevision(repoPath: string, filePath: string, 
 
     const tmpFile = path.join(
         os.tmpdir(),
-        `vscode_gitDiff_${revision}:${path.basename(filePath)}`
+        `${revision}_${path.basename(path.normalize(filePath))}`
     );
     await fsp.writeFile(tmpFile, buffer as Uint8Array);
 

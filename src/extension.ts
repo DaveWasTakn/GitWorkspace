@@ -122,9 +122,18 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string): Pr
         return false;
     }
 
-    const disposables: Disposable[] = [];
-    const oldContentUri: Uri = vscode.Uri.file(fileAtRevision);
+    const oldContentUri: Uri = vscode.Uri.from({scheme: "gitDiff", path: filePath, query: revision});
     let newContentUri: Uri = vscode.Uri.file(treeItem.getAbsPath());
+
+    const oldContent: string = (await vscode.workspace.openTextDocument(vscode.Uri.file(fileAtRevision))).getText();
+    const histProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("gitDiff", {
+        provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
+            // use textDocument provider instead of just providing the fileUri to make the old version view-only
+            return oldContent;
+        }
+    } as TextDocumentContentProvider);
+
+    const disposables: Disposable[] = [histProviderRegistration];
 
     if (isDeleted(treeItem)) {  // If the file is deleted then display an empty new document
         const emptyProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("empty", {
