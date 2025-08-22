@@ -133,7 +133,7 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string): Pr
     const oldContentUri: Uri = vscode.Uri.from({scheme: "gitDiff", path: filePath, query: revision});
     let newContentUri: Uri = vscode.Uri.file(treeItem.getAbsPath());
 
-    if (treeItem.gitType === GitType.DELETED || treeItem.gitType === GitType.COMMITTED_DELETED) {  // If the file is deleted then display an empty new document
+    if (isDeleted(treeItem)) {  // If the file is deleted then display an empty new document
         const emptyProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("empty", {
             provideTextDocumentContent(uri: Uri, token: CancellationToken): ProviderResult<string> {
                 return "";
@@ -154,9 +154,25 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string): Pr
 }
 
 async function cmd_rename(treeItem: TreeItem) {
+    if (isDeleted(treeItem)) {
+        vscode.window.showInformationMessage("Cannot rename a deleted file.");
+        return;
+    }
+
     const newName = await vscode.window.showInputBox({
         title: `Enter new name for file: ${treeItem.label}`,
+        value: treeItem.label,
+        validateInput: (value) => {
+            if (!value.trim()) {
+                return "Name cannot be empty";
+            }
+            if (value === treeItem.label) {
+                return "Please enter a new name";
+            }
+            return;
+        }
     });
+
     if (!newName) {
         return;
     }
@@ -182,13 +198,27 @@ async function safeRename(oldPath: string, newPath: string) {
 }
 
 async function cmd_rollback(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
-    if (await confirmation("Are you sure you want to rollback file: " + treeItem.label + " to HEAD?")) {
+    if (isDeleted(treeItem)) {
+        vscode.window.showInformationMessage("Cannot rollback a deleted file.");
+        return;
+    }
+
+    if (await confirmation("Are you sure you want to rollback the file: " + treeItem.label + " to HEAD?")) {
         await execSyscall("git", ["checkout", "HEAD", "--", treeItem.filePath], treeItem.repo);
     }
 }
 
+function isDeleted(treeItem: TreeItem) {
+    return treeItem.gitType === GitType.DELETED || treeItem.gitType === GitType.COMMITTED_DELETED;
+}
+
 async function cmd_delete(treeItem: TreeItem) {
-    if (await confirmation(`Are you sure you want to delete file: ${treeItem.label}?`)) {
+    if (isDeleted(treeItem)) {
+        vscode.window.showInformationMessage("Cannot delete a deleted file.");
+        return;
+    }
+
+    if (await confirmation(`Are you sure you want to delete the file: ${treeItem.label}?`)) {
         await trash(treeItem.getAbsPath());
     }
 }
