@@ -194,11 +194,12 @@ async function cmd_delete(treeItem: TreeItem) {
 }
 
 async function confirmation(message: string): Promise<boolean> {
-    return vscode.window
-        .showInformationMessage(message, "Yes", "No")
-        .then(answer => {
-            return "Yes" === answer;
-        });
+    return "Yes" === await vscode.window.showInformationMessage(
+        message,
+        {modal: true},
+        "Yes",
+        "No"
+    );
 }
 
 async function cmd_workFlowQuickPick(repository: TreeItem) {
