@@ -8,8 +8,10 @@ import {
     TreeView,
     Uri
 } from 'vscode';
-import {FileTreeDataProvider, getFileAtRevision, GitType, TreeItem} from './FileTreeDataProvider';
+import {execSyscall, FileTreeDataProvider, getFileAtRevision, GitType, TreeItem} from './FileTreeDataProvider';
 import * as path from 'path';
+import {promises as fs} from "fs";
+import trash from 'trash';
 
 
 export function activate(context: vscode.ExtensionContext) {
@@ -36,23 +38,23 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     vscode.commands.registerCommand('gitWorkspace_container_files.diffHead', async (treeItem: TreeItem) => {
-        await cmd_diffHead(treeItem, fileTreeDataProvider);
+        await cmd_diffHead(treeItem, fileTreeDataProvider, treeView);
     });
 
     vscode.commands.registerCommand('gitWorkspace_container_files.diffBranch', async (treeItem: TreeItem) => {
-        await cmd_diffBranch(treeItem, fileTreeDataProvider);
+        await cmd_diffBranch(treeItem, fileTreeDataProvider, treeView);
     });
 
-    vscode.commands.registerCommand('gitWorkspace_container_files.rename', (treeItem: TreeItem) => {
-        cmd_rename(treeItem);
+    vscode.commands.registerCommand('gitWorkspace_container_files.rename', async (treeItem: TreeItem) => {
+        await cmd_rename(treeItem);
     });
 
-    vscode.commands.registerCommand('gitWorkspace_container_files.rollback', (treeItem: TreeItem) => {
-        cmd_rollback(treeItem);
+    vscode.commands.registerCommand('gitWorkspace_container_files.rollback', async (treeItem: TreeItem) => {
+        await cmd_rollback(treeItem, treeView);
     });
 
-    vscode.commands.registerCommand('gitWorkspace_container_files.delete', (treeItem: TreeItem) => {
-        cmd_delete(treeItem);
+    vscode.commands.registerCommand('gitWorkspace_container_files.delete', async (treeItem: TreeItem) => {
+        await cmd_delete(treeItem);
     });
 
     vscode.commands.registerCommand('gitWorkspace.workFlowQuickPick', async (repository: TreeItem) => {
@@ -83,26 +85,34 @@ function cmd_onClickTreeItem(treeView: TreeView<TreeItem>) {
     }
 }
 
-function cmd_quickAction(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
+function reveal(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
     treeView.reveal(treeItem, {select: true, focus: true, expand: false});
+}
+
+function cmd_quickAction(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
+    reveal(treeItem, treeView);
     // TODO provide option to choose quickAction - check and call corresponding function
 }
 
-async function cmd_diffHead(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider) {
-    await showDiff(treeItem, `${treeItem.label} (HEAD)  ↔  ${treeItem.label}`, "HEAD");
+async function cmd_diffHead(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider, treeView: TreeView<TreeItem>) {
+    if (await showDiff(treeItem, `${treeItem.label} (HEAD)  ↔  ${treeItem.label}`, "HEAD")) {
+        reveal(treeItem, treeView);
+    }
 }
 
-async function cmd_diffBranch(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider) {
+async function cmd_diffBranch(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider, treeView: TreeView<TreeItem>) {
     const branchName: string | undefined = await fileTreeDataProvider.getBranchName(treeItem.repo);
     if (!branchName) {
         vscode.window.showErrorMessage("Could not determine branch name ...");
         return;
     }
     const branchOriginRevision: string = fileTreeDataProvider.repositoryInfos[treeItem.repo].branches[branchName];
-    await showDiff(treeItem, `${treeItem.label} (branch-origin)  ↔  ${treeItem.label}`, branchOriginRevision);
+    if (await showDiff(treeItem, `${treeItem.label} (branch-origin)  ↔  ${treeItem.label}`, branchOriginRevision)) {
+        reveal(treeItem, treeView);
+    }
 }
 
-async function showDiff(treeItem: TreeItem, title: string, revision: string) {
+async function showDiff(treeItem: TreeItem, title: string, revision: string): Promise<boolean> {
     let filePath = path.normalize(treeItem.filePath);
 
     if (path.sep === "\\") {
@@ -114,7 +124,7 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string) {
         fileContentAtRevision = await getFileAtRevision(treeItem.repo, filePath, revision);
     } catch (e) {
         vscode.window.showInformationMessage(`The file did not exist at the specified revision : ${revision}`);
-        return;
+        return false;
     }
 
     const histProviderRegistration = vscode.workspace.registerTextDocumentContentProvider("gitDiff", {
@@ -144,18 +154,55 @@ async function showDiff(treeItem: TreeItem, title: string, revision: string) {
         newContentUri,
         title
     ).then(() => disposables.forEach(x => x.dispose));
+    return true;
 }
 
-function cmd_rename(treeItem: TreeItem) {
+async function cmd_rename(treeItem: TreeItem) {
+    const newName = await vscode.window.showInputBox({
+        title: `Enter new name for file: ${treeItem.label}`,
+    });
+    if (!newName) {
+        return;
+    }
 
+    const oldFilePath = path.join(treeItem.repo, treeItem.filePath);
+    const newFilePath = path.join(treeItem.repo, treeItem.filePath.replace(treeItem.label, newName));
+
+    await safeRename(oldFilePath, newFilePath);
 }
 
-function cmd_rollback(treeItem: TreeItem) {
+async function safeRename(oldPath: string, newPath: string) {
+    try {
+        await fs.access(newPath);
+        vscode.window.showErrorMessage(`Target file already exists: "${newPath}"! Rename aborted.`);
+        return;
+    } catch (err: any) {
+        if (err.code !== "ENOENT") {
+            throw err;
+        }
+    }
 
+    await fs.rename(oldPath, newPath);
 }
 
-function cmd_delete(treeItem: TreeItem) {
+async function cmd_rollback(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
+    if (await confirmation("Are you sure you want to rollback file: " + treeItem.label + " to HEAD?")) {
+        await execSyscall("git", ["checkout", "HEAD", "--", treeItem.filePath], treeItem.repo);
+    }
+}
 
+async function cmd_delete(treeItem: TreeItem) {
+    if (await confirmation(`Are you sure you want to delete file: ${treeItem.label}?`)) {
+        await trash(path.join(treeItem.repo, treeItem.filePath));
+    }
+}
+
+async function confirmation(message: string): Promise<boolean> {
+    return vscode.window
+        .showInformationMessage(message, "Yes", "No")
+        .then(answer => {
+            return "Yes" === answer;
+        });
 }
 
 async function cmd_workFlowQuickPick(repository: TreeItem) {
