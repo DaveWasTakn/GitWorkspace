@@ -98,7 +98,7 @@ function cmd_onClickTreeItem(treeView: TreeView<TreeItem>) {
 }
 
 async function cmd_diffHead(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider, treeView: TreeView<TreeItem>) {
-    await showDiff(treeItem, `${treeItem.label} (HEAD)  ↔  ${treeItem.label}`, "HEAD");
+    await showDiff(treeItem, `${treeItem.label} (latest commit)  ↔  ${treeItem.label}`, "HEAD");
 }
 
 async function cmd_diffBranch(treeItem: TreeItem, fileTreeDataProvider: FileTreeDataProvider, treeView: TreeView<TreeItem>) {
