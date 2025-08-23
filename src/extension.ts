@@ -198,7 +198,7 @@ async function safeRename(oldPath: string, newPath: string) {
 }
 
 async function cmd_rollback(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
-    if (await confirmation("Are you sure you want to rollback the file " + treeItem.label + " to the latest commit?")) {
+    if (await confirmation(`Are you sure you want to rollback the file "${treeItem.label}" to the latest commit?`)) {
         await execSyscall("git", ["checkout", "HEAD", "--", treeItem.filePath], treeItem.repo);
     }
 }
@@ -213,8 +213,22 @@ async function cmd_delete(treeItem: TreeItem) {
         return;
     }
 
-    if (await confirmation(`Are you sure you want to delete the file: ${treeItem.label}?`)) {
-        await vscode.workspace.fs.delete(vscode.Uri.file(treeItem.getAbsPath()), {recursive: false, useTrash: true});
+    if (await confirmation(`Are you sure you want to delete the file "${treeItem.label}"?`)) {
+        try {
+            await vscode.workspace.fs.delete(vscode.Uri.file(treeItem.getAbsPath()), {
+                recursive: false,
+                useTrash: true
+            });
+        } catch (e1) {
+            try {
+                await vscode.workspace.fs.delete(vscode.Uri.file(treeItem.getAbsPath()), {
+                    recursive: false,
+                    useTrash: false
+                });
+            } catch (e2) {
+                vscode.window.showErrorMessage(`Failed to delete file "${treeItem.label}": ${e2}`);
+            }
+        }
     }
 }
 
