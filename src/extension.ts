@@ -198,7 +198,7 @@ async function safeRename(oldPath: string, newPath: string) {
 }
 
 async function cmd_rollback(treeItem: TreeItem, treeView: TreeView<TreeItem>) {
-    if (await confirmation("Are you sure you want to rollback the file: " + treeItem.label + " to HEAD?")) {
+    if (await confirmation("Are you sure you want to rollback the file " + treeItem.label + " to the latest commit?")) {
         await execSyscall("git", ["checkout", "HEAD", "--", treeItem.filePath], treeItem.repo);
     }
 }

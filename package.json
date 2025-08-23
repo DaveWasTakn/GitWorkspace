@@ -50,7 +50,7 @@
       },
       {
         "command": "gitWorkspace_container_files.diffHead",
-        "title": "diff: last commit"
+        "title": "diff: latest commit"
       },
       {
         "command": "gitWorkspace_container_files.diffBranch",
