@@ -20,6 +20,13 @@ the current branch (since its creation!) for one or more Git repositories.
   This provides a clear view of every file the branch has ever changed, **ignoring intermediate merges**!
   Ideal for visualizing the full impact of a feature/topic branch.
 
+- 🖱️ Right-Click Actions
+  - `Diff to Latest Commit` – View changes since the last commit.
+  - `Diff to Branch Origin` – View all changes since the branch split from `main`/`master`.
+  - `Rename` – Rename the file.
+  - `Rollback` – Restore the last committed state.
+  - `Delete` – Move to trash (if supported, else delete).
+
 - ⚙️ **Custom Workflows**   
   A custom workflow is a set of commands that are executed in succession within the selected repository.
   Custom Workflows can be executed in a specific repository by clicking on it in the extension's explorer.
@@ -66,7 +73,7 @@ regardless of whether these changes have already been merged back into the defau
 **Suggestions, feature requests or contributions are welcome on [Github](https://github.com/DaveWasTakn/GitWorkspace).**
 
 **You can also leave reviews on
-the [Microsoft Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=daveWasTaken.gitworkspace).**
+the [Microsoft Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=daveWasTaken.gitworkspace) and/or [Open VSX](https://open-vsx.org/extension/daveWasTaken/gitworkspace).**
 
 ## Repository
 
