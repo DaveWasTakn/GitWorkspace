@@ -181,6 +181,8 @@ async function cmd_rename(treeItem: TreeItem) {
     const newFilePath = path.join(treeItem.repo, treeItem.filePath.replace(treeItem.label, newName));
 
     await safeRename(oldFilePath, newFilePath);
+    const document = await vscode.workspace.openTextDocument(newFilePath);
+    await vscode.window.showTextDocument(document, {preview: false});
 }
 
 async function safeRename(oldPath: string, newPath: string) {
