@@ -1,3 +1,8 @@
+# v2.0.1
+## Changes
+- Update README
+
+
 # v2.0.0
 ## Additions
 - A right-click context menu which includes the following options:
@@ -18,7 +23,6 @@
 - Remove unnecessary files from being packaged into the vsix, thus shrinking the extension size from 2.9 MB to 70 KB. 
 - Update README
 
-----------------------------------------------------------------------------
 
 # v1.2.0
 ## Additions
@@ -30,13 +34,11 @@
 ## Changes
 - update README
 
-----------------------------------------------------------------------------
 
 # v1.1.4
 ## Fixes
 - fix splitting regex not working correctly due to lazy modifier
 
-----------------------------------------------------------------------------
 
 # v1.1.3
 ## Fixes
@@ -45,13 +47,11 @@
 - handle tabs `\t` in filenames by using null-character `\0` as delimiter for `git diff`
     - by using the `-z` flag
 
-----------------------------------------------------------------------------
 
 # v1.1.2
 ## Additions
 - Add FileSystemWatchers for each repository to automatically refresh on any changes
 
-----------------------------------------------------------------------------
 
 # v1.1.1
 ## Changes
@@ -59,7 +59,6 @@
 - add icon
 - rename to "Git Workspace"
 
-----------------------------------------------------------------------------
 
 # v1.1.0
 ## Additions
@@ -71,26 +70,21 @@
 ## Changes
 - some refactoring to reduce unnecessary operations
 
-----------------------------------------------------------------------------
 
 # v1.0.4
 ## Changes
 - remove default value for repository path settings
 
-----------------------------------------------------------------------------
 
 # v1.0.3
 ## Changes
 - update error message when repository path is invalid (#1)
 - clarify correct path specification in extension settings
 
-----------------------------------------------------------------------------
 
 # v1.0.2
 ## Changes
 - update README
-
-----------------------------------------------------------------------------
 
 
 # v1.0.1
