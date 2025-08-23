@@ -333,7 +333,7 @@ function onDidChangeConfiguration(event: ConfigurationChangeEvent, fileTreeDataP
     }
 }
 
-function onDidChangeActiveTextEditor(editor: TextEditor | undefined, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider) {
+function onDidChangeActiveTextEditor(editor: TextEditor | undefined, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider, focus: boolean = false) {
     if (!treeView.visible) {
         return;
     }
@@ -341,16 +341,16 @@ function onDidChangeActiveTextEditor(editor: TextEditor | undefined, treeView: T
     if (editor) {
         const treeItem: TreeItem | undefined = fileTreeDataProvider.treeItemPathsLookup[editor.document.uri.fsPath];
         if (treeItem) {
-            treeView.reveal(treeItem);
+            treeView.reveal(treeItem, {select: true, focus: focus});
             return;
         }
     }
 
-    treeView.reveal(Object.values(fileTreeDataProvider.treeItemPathsLookup)[0]); // just reveal the repo, since there is no way to unselect items :(
+    treeView.reveal(Object.values(fileTreeDataProvider.treeItemPathsLookup)[0], {select: true, focus: focus}); // just reveal the repo, since there is no way to unselect items :(
 }
 
 function treeView_onDidChangeVisibility(treeViewVisibilityChangeEvent: TreeViewVisibilityChangeEvent, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider) {
     if (treeViewVisibilityChangeEvent.visible) {
-        onDidChangeActiveTextEditor(vscode.window.activeTextEditor, treeView, fileTreeDataProvider);
+        onDidChangeActiveTextEditor(vscode.window.activeTextEditor, treeView, fileTreeDataProvider, true);
     }
 }
