@@ -7,6 +7,7 @@ import {
     TextDocumentContentProvider,
     TextEditor,
     TreeView,
+    TreeViewVisibilityChangeEvent,
     Uri
 } from 'vscode';
 import {execSyscall, FileTreeDataProvider, getTempFileAtRevision, GitType, TreeItem} from './FileTreeDataProvider';
@@ -63,6 +64,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     vscode.window.onDidChangeActiveTextEditor((editor: TextEditor | undefined) => {
         onDidChangeActiveTextEditor(editor, treeView, fileTreeDataProvider);
+    });
+
+    treeView.onDidChangeVisibility((treeViewVisibilityChangeEvent: TreeViewVisibilityChangeEvent) => {
+        treeView_onDidChangeVisibility(treeViewVisibilityChangeEvent, treeView, fileTreeDataProvider);
     });
 
     // manually trigger selection sync after a delay, since there is no event to know when a treeview is fully populated
@@ -329,16 +334,23 @@ function onDidChangeConfiguration(event: ConfigurationChangeEvent, fileTreeDataP
 }
 
 function onDidChangeActiveTextEditor(editor: TextEditor | undefined, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider) {
-    if (!editor) {
-        // unselecting items still not possible - heavily requested feature on github stalled for multiple years now by microsoft :(
-        if (treeView.selection.length > 0) { // if there is a selection, just select the repo ...
-            treeView.reveal(Object.values(fileTreeDataProvider.treeItemPathsLookup)[0]);
-        }
+    if (!treeView.visible) {
         return;
     }
 
-    const treeItem: TreeItem | undefined = fileTreeDataProvider.treeItemPathsLookup[editor.document.uri.fsPath];
-    if (treeItem) {
-        treeView.reveal(treeItem);
+    if (editor) {
+        const treeItem: TreeItem | undefined = fileTreeDataProvider.treeItemPathsLookup[editor.document.uri.fsPath];
+        if (treeItem) {
+            treeView.reveal(treeItem);
+            return;
+        }
+    }
+
+    treeView.reveal(Object.values(fileTreeDataProvider.treeItemPathsLookup)[0]); // just reveal the repo, since there is no way to unselect items :(
+}
+
+function treeView_onDidChangeVisibility(treeViewVisibilityChangeEvent: TreeViewVisibilityChangeEvent, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider) {
+    if (treeViewVisibilityChangeEvent.visible) {
+        onDidChangeActiveTextEditor(vscode.window.activeTextEditor, treeView, fileTreeDataProvider);
     }
 }
