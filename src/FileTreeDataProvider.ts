@@ -11,7 +11,16 @@ const execAsync = promisify(execFile);
 
 export async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
     console.log(`exec: "${executable} ${args.join(" ")}" in directory: "${cwd}"`);
-    return (await execAsync(executable, args, {cwd})).stdout;
+    try {
+        return (await execAsync(executable, args, {cwd})).stdout;
+    } catch (e) {
+        if (!fs.existsSync(cwd)) {
+            vscode.window.showErrorMessage(`The directory "${cwd}" does not exist! Hint: Also check if your path is in the correct style: backslashes (\\) for Windows, and forward slashes (/) for Unix-based systems (including macOS and WSL)`);
+        } else {
+            vscode.window.showErrorMessage(`Error executing "${executable} ${args.join(" ")}" in directory: "${cwd}" with message: "${e.message}"`);
+        }
+        return "";
+    }
 }
 
 export async function execSyscallBuffer(executable: string, args: string[], cwd: string): Promise<Buffer> {
@@ -173,6 +182,10 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private async parseRepositories(repositories: string[], treeItems: TreeItem[]): Promise<void> {
         for (const repository of repositories) {
+            if (!repository || repository.trim().length === 0) {
+                continue;
+            }
+
             if (!this.repositoryInfos[repository]) {
                 this.repositoryInfos[repository] = {
                     branches: {}, defaultBranch: await this.getDefaultBranchName(repository)
@@ -235,18 +248,8 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
 
     public async getBranchName(repository: string): Promise<string | undefined> {
-        try {
-            let result = await execSyscall(this.gitPath, BRANCH_NAME_COMMAND, repository);
-            return result.replace(/[\r\n]/g, "");
-        } catch (error) {
-            if (!fs.existsSync(repository)) {
-                vscode.window.showErrorMessage(`The repository ${repository} does not exist! It will be ignored.\n\nAlso check if your path is in the correct style: backslashes (\\) for Windows, and forward slashes (/) for Unix-based systems (including macOS and WSL)`);
-            } else {
-                vscode.window.showErrorMessage("Error executing the following command: '" + this.gitPath + " " + BRANCH_NAME_COMMAND.join(" ") + "' in directory: " + repository);
-                console.error("exec error: " + error);
-            }
-            return undefined;
-        }
+        let result = await execSyscall(this.gitPath, BRANCH_NAME_COMMAND, repository);
+        return result.replace(/[\r\n]/g, "");
     }
 
     private async getDefaultBranchName(repository: string): Promise<string> {
