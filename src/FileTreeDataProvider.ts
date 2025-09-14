@@ -10,7 +10,7 @@ import * as os from "os";
 const execAsync = promisify(execFile);
 
 export async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
-    console.log(`exec: ${executable} ${args.join(" ")}`);
+    console.log(`exec: "${executable} ${args.join(" ")}" in directory: "${cwd}"`);
     return (await execAsync(executable, args, {cwd})).stdout;
 }
 
