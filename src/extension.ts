@@ -326,9 +326,14 @@ const KNOWN_PLACEHOLDERS = {
 };
 
 function onDidChangeConfiguration(event: ConfigurationChangeEvent, fileTreeDataProvider: FileTreeDataProvider) {
-    if (event.affectsConfiguration('gitWorkspace.useFileWatchers')) {
-        fileTreeDataProvider.disposeFileWatchers();
-        fileTreeDataProvider.readConfig_useFileWatchers();
+    if (event.affectsConfiguration('gitWorkspace')) {
+        if (event.affectsConfiguration('gitWorkspace.path_to_repository')) {
+            fileTreeDataProvider.reset();
+        }
+        if (event.affectsConfiguration('gitWorkspace.useFileWatchers')) {
+            fileTreeDataProvider.disposeFileWatchers();
+            fileTreeDataProvider.readConfig_useFileWatchers();
+        }
         fileTreeDataProvider.refresh();
     }
 }
