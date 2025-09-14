@@ -1,7 +1,15 @@
+# v2.0.4
+## Changes
+- Update README
+  - use img.shields.io badges
+    - hoping the vscode marketplace validation likes them better
+
+
 # v2.0.3
 ## Changes
 - Update README
   - Remove custom labels from badges, vscode marketplace rejects them
+
 
 # v2.0.2
 ## Changes
