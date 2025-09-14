@@ -1,3 +1,13 @@
+# v2.0.2
+## Changes
+- Refresh the tree whenever an extension specific setting is changed
+- Improve error handling and reporting
+  - Skip empty path entries in the repository settings
+  - Check if the directory actually exists whenever a command fails and notify the user
+- Improve logging (to dev console)
+- Update README
+
+
 # v2.0.1
 ## Changes
 - Update README
