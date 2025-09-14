@@ -1,4 +1,4 @@
-# v2.0.1
+# v2.0.3
 ## Changes
 - Update README
   - Remove custom labels from badges, vscode marketplace rejects them
