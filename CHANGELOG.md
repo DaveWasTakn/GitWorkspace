@@ -1,3 +1,8 @@
+# v2.0.1
+## Changes
+- Update README
+  - Remove custom labels from badges, vscode marketplace rejects them
+
 # v2.0.2
 ## Changes
 - Refresh the tree whenever an extension specific setting is changed
