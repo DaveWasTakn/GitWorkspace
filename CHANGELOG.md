@@ -1,3 +1,10 @@
+# v2.0.5
+## Additions
+- Add `syncFileSelection` setting
+  - To control whether the currently opened file should be selected (highlighted) in the explorer
+  - Disabling it can help reduce jumpy behaviour when the explorer is scrollable
+
+
 # v2.0.4
 ## Changes
 - Update README
