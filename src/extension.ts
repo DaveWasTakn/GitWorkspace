@@ -339,7 +339,7 @@ function onDidChangeConfiguration(event: ConfigurationChangeEvent, fileTreeDataP
 }
 
 function onDidChangeActiveTextEditor(editor: TextEditor | undefined, treeView: TreeView<TreeItem>, fileTreeDataProvider: FileTreeDataProvider, focus: boolean = false) {
-    if (!treeView.visible) {
+    if (!treeView.visible || !(vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('syncFileSelection') ?? true)) {
         return;
     }
 

@@ -151,6 +151,13 @@
           "markdownDescription": "Enable automatic view updates when files in the specified repositories are created, changed, or deleted.",
           "order": 2
         },
+        "gitWorkspace.syncFileSelection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to select (highlight) the currently opened file in the explorer. If the explorer is scrollable VSCode will scroll to make the item visible.",
+          "markdownDescription": "Whether to select (highlight) the currently opened file in the explorer. If the explorer is scrollable VSCode will scroll to make the item visible.",
+          "order": 3
+        },
         "gitWorkspace.customWorkflows": {
           "type": "object",
           "default": {
@@ -162,14 +169,14 @@
           },
           "description": "Custom workflows that can be triggered by clicking on a repository in the extension's explorer.\n\nA workflow is a sequence of commands defined in settings.json, each with a name and a list of commands. Use placeholders like <<<PLACEHOLDER NAME>>> to prompt for user input at runtime. \n\nExample 'commit' workflow: Stages all changes and commits them, prompting for the commit message: \"commit\": [ \"git add --all\", \"git commit -m '<<<commit message>>>'\" ]\n\nSpecial placeholders are replaced automatically: <<<$REPOSITORY_NAME>>>, <<<$REPOSITORY_BRANCH>>>, <<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>, <<<$REPOSITORY_PATH>>>. The spawned terminal will use your preferred shell type set in the `terminal.integrated.defaultProfile` vscode settings, however, instead of PowerShell, the normal Command Prompt will be used on windows if the `useChainingForWorkflows` is enabled.",
           "markdownDescription": "**Custom workflows that can be triggered by clicking on a repository in the extension's explorer.**\n\nA workflow is a sequence of commands defined in `settings.json`, each with a name and a list of commands.\n\nUse placeholders like `<<<PLACEHOLDER NAME>>>` to prompt for user input at runtime.\n\n**Example 'commit' workflow:**\nStages all changes and commits them, prompting for the commit message:\n```json\n\"commit\": [\n  \"git add --all\",\n  \"git commit -m \\\"<<<commit message>>>\\\"\"\n]\n```\n\n_Special placeholders are replaced automatically:_ `<<<$REPOSITORY_NAME>>>`, `<<<$REPOSITORY_BRANCH>>>`, `<<<$REPOSITORY_BRANCH_WITHOUT_PREFIX>>>`, `<<<$REPOSITORY_PATH>>>`.\n\n_The spawned terminal will use your preferred shell type set in the `terminal.integrated.defaultProfile` vscode settings, however, instead of PowerShell, the normal Command Prompt will be used on windows if the `useChainingForWorkflows` is enabled._",
-          "order": 3
+          "order": 4
         },
         "gitWorkspace.useChainingForWorkflows": {
           "type": "boolean",
           "default": true,
           "description": "Use && to chain commands in workflows. This is recommended, as it stops execution if a command fails.\n\nDisabling this will run commands one by one without checking for errors (due to a VSCode API limitation).\n\nEven if your default shell is PowerShell, commands will run in Command Prompt when chaining is enabled (since && isn't supported in all PowerShell versions).\n\nTo change your default shell, search for terminal.integrated.defaultProfile in settings (e.g., terminal.integrated.defaultProfile.windows on Windows).",
           "markdownDescription": "Use `&&` to chain commands in workflows. This is recommended, as it stops execution if a command fails.\n\nDisabling this will run commands one by one without checking for errors (due to a VSCode API limitation).\n\nEven if your default shell is PowerShell, commands will run in Command Prompt when chaining is enabled (since `&&` isn't supported in all PowerShell versions).\n\nTo change your default shell, search for `terminal.integrated.defaultProfile` in settings (e.g., `terminal.integrated.defaultProfile.windows` on Windows).",
-          "order": 4
+          "order": 5
         }
       }
     }
