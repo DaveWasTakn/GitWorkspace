@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import {ExtensionContext, ProviderResult} from 'vscode';
+import {ExtensionContext, ProviderResult, Uri} from 'vscode';
 import * as path from 'path';
 import {promisify} from 'util';
 import {execFile} from 'child_process';
@@ -10,7 +10,7 @@ import * as os from "os";
 const execAsync = promisify(execFile);
 
 export async function execSyscall(executable: string, args: string[], cwd: string): Promise<string> {
-    console.log(`exec: "${executable} ${args.join(" ")}" in directory: "${cwd}"`);
+    debugLog(`exec: "${executable} ${args.join(" ")}" in directory: "${cwd}"`);
     try {
         return (await execAsync(executable, args, {cwd})).stdout;
     } catch (e) {
@@ -46,6 +46,12 @@ export async function getTempFileAtRevision(repoPath: string, filePath: string, 
     return tmpFile;
 }
 
+export function debugLog(msg: string): void {
+    if (ENABLE_DEBUG_LOGGING) {
+        console.log(`[gitWorkspace] ${msg}`);
+    }
+}
+
 type RepositoryInfo = {
     defaultBranch: string; branches: Record<string, string>;
 };
@@ -55,6 +61,8 @@ const BRANCH_NAME_COMMAND: string[] = ["name-rev", "--name-only", "HEAD"]; // gi
 const DEFAULT_BRANCH_NAME_COMMAND: string[] = ["branch", "-l", "main", "master", "--format", "%(refname:short)"];
 const GIT_STATUS_COMMAND: string[] = ["status", "--untracked-files=all", "--porcelain"];
 
+let ENABLE_DEBUG_LOGGING: boolean = false;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
@@ -63,7 +71,10 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     private gitPath: string = "git";
     private useFileWatchers: boolean = true;
     private fileWatchers: Record<string, vscode.FileSystemWatcher> = {};
-    private lastRefreshTime = 0;
+    private lastRefresh = 0;
+    private refreshTimeout: NodeJS.Timeout | undefined;
+    private eventBufferTimeout: NodeJS.Timeout | undefined;
+    private pendingRefresh = false;
 
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
@@ -75,19 +86,38 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
         this.readConfig_useFileWatchers();
+        this.readConfig_enableDebugLogging();
     }
-
 
     public readConfig_useFileWatchers(): void {
         this.useFileWatchers = vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('useFileWatchers') ?? true;
     }
 
+    public readConfig_enableDebugLogging(): void {
+        ENABLE_DEBUG_LOGGING = vscode.workspace.getConfiguration('gitWorkspace').get<boolean>('enableDebugLogging') ?? false;
+    }
+
     refresh(): void {
-        const now: number = Date.now();
-        if (now - this.lastRefreshTime > 350) {
-            this.lastRefreshTime = now;
-            this._onDidChangeTreeData.fire();
+        const timeSinceLast = Date.now() - this.lastRefresh;
+
+        if (timeSinceLast < 350 || this.refreshTimeout) {
+            debugLog("refresh - throttled");
+            if (this.refreshTimeout) {
+                clearTimeout(this.refreshTimeout);
+            }
+            debugLog("refresh - scheduled");
+            this.refreshTimeout = setTimeout(() => {
+                this.lastRefresh = Date.now();
+                debugLog("refresh - FIRE (delayed)");
+                this._onDidChangeTreeData.fire();
+                this.refreshTimeout = undefined;
+            }, 350);
+            return;
         }
+
+        this.lastRefresh = Date.now();
+        debugLog("refresh - FIRE (immediate)");
+        this._onDidChangeTreeData.fire();
     }
 
     reset(): void {
@@ -217,11 +247,43 @@ export class FileTreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
 
     private createFileWatcher(path: string): void {
         const fileSystemWatcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(path), '**/*'));
-        fileSystemWatcher.onDidChange(_ => this.refresh());
-        fileSystemWatcher.onDidCreate(_ => this.refresh());
-        fileSystemWatcher.onDidDelete(_ => this.refresh());
+        fileSystemWatcher.onDidChange(uri => {
+            debugLog(`FileWatcher.onChange: ${uri.fsPath}`);
+            this.filteredRefresh(uri);
+        });
+        fileSystemWatcher.onDidCreate(uri => {
+            debugLog(`FileWatcher.onCreate: ${uri.fsPath}`);
+            this.filteredRefresh(uri);
+        });
+        fileSystemWatcher.onDidDelete(uri => {
+            debugLog(`FileWatcher.onDelete: ${uri.fsPath}`);
+            this.filteredRefresh(uri);
+        });
         this.context.subscriptions.push(fileSystemWatcher);
         this.fileWatchers[path] = fileSystemWatcher;
+    }
+
+    private filteredRefresh(uri: Uri): void {
+        if (uri.fsPath.includes(`${path.sep}.git${path.sep}`)) {
+            debugLog(`Ignored FileWatcher event for: ${uri.fsPath}`);
+            return;
+        }
+
+        this.pendingRefresh = true;
+
+        if (this.eventBufferTimeout) {
+            clearTimeout(this.eventBufferTimeout);
+        }
+
+        // micro batch to handle multiple events emitted for the same change when e.g. saving with an editor (buffer flush, filesystem write ...)
+        this.eventBufferTimeout = setTimeout(() => {
+            this.eventBufferTimeout = undefined;
+
+            if (this.pendingRefresh) {
+                this.pendingRefresh = false;
+                this.refresh();
+            }
+        }, 50);
     }
 
     public disposeFileWatchers(): void {

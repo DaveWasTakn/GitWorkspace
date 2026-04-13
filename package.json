@@ -177,6 +177,13 @@
           "description": "Use && to chain commands in workflows. This is recommended, as it stops execution if a command fails.\n\nDisabling this will run commands one by one without checking for errors (due to a VSCode API limitation).\n\nEven if your default shell is PowerShell, commands will run in Command Prompt when chaining is enabled (since && isn't supported in all PowerShell versions).\n\nTo change your default shell, search for terminal.integrated.defaultProfile in settings (e.g., terminal.integrated.defaultProfile.windows on Windows).",
           "markdownDescription": "Use `&&` to chain commands in workflows. This is recommended, as it stops execution if a command fails.\n\nDisabling this will run commands one by one without checking for errors (due to a VSCode API limitation).\n\nEven if your default shell is PowerShell, commands will run in Command Prompt when chaining is enabled (since `&&` isn't supported in all PowerShell versions).\n\nTo change your default shell, search for `terminal.integrated.defaultProfile` in settings (e.g., `terminal.integrated.defaultProfile.windows` on Windows).",
           "order": 5
+        },
+        "gitWorkspace.enableDebugLogging": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging to the developer console. The console is accessible through Help -> Toggle Developer Tools -> Console",
+          "markdownDescription": "Enable debug logging to the developer console. The console is accessible through `Help -> Toggle Developer Tools -> Console`",
+          "order": 6
         }
       }
     }

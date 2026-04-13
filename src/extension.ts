@@ -334,6 +334,9 @@ function onDidChangeConfiguration(event: ConfigurationChangeEvent, fileTreeDataP
             fileTreeDataProvider.disposeFileWatchers();
             fileTreeDataProvider.readConfig_useFileWatchers();
         }
+        if (event.affectsConfiguration('gitWorkspace.enableDebugLogging')) {
+            fileTreeDataProvider.readConfig_enableDebugLogging();
+        }
         fileTreeDataProvider.refresh();
     }
 }
