@@ -1,3 +1,15 @@
+# v2.1.0
+## Fixes
+- Fix potential feedback loop of filewatchers triggering on .git internal locking files
+
+## Changes
+- Implemented proper debouncing, throttling and batching for refreshing the treeview 
+
+## Additions
+- Add `enableDebugLogging` setting
+    - To enable debug logging to the developer console which can be accessed under: `Help -> Toggle Developer Tools -> Console`
+
+
 # v2.0.5
 ## Additions
 - Add `syncFileSelection` setting
